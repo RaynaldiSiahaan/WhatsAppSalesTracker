@@ -1,78 +1,37 @@
 import app from './app';
 import { env } from './config/env';
-import { closeDatabasePool, initDatabasePool } from './config/database';
-import { logError, logger } from './config/logger';
+import pool from './config/database';
+import { logger } from './utils/logger';
 
-const port = env.port;
-type ShutdownSignal = NodeJS.Signals | 'uncaughtException' | 'unhandledRejection';
-
-let server: ReturnType<typeof app.listen> | null = null;
-let isShuttingDown = false;
-
-const start = async () => {
+const startServer = async () => {
   try {
-    await initDatabasePool();
-    logger.info('Database pool initialized.');
+    // Verify Database Connection
+    await pool.query('SELECT 1');
+    logger.info('Database connection established.');
+
+    const server = app.listen(env.port, () => {
+      logger.info(`Server running on port ${env.port}`);
+    });
+
+    // Graceful Shutdown
+    const shutdown = async (signal: string) => {
+      logger.info(`Received ${signal}. Starting graceful shutdown...`);
+      server.close(() => {
+        logger.info('HTTP server closed.');
+        pool.end(() => {
+          logger.info('Database pool closed.');
+          process.exit(0);
+        });
+      });
+    };
+
+    process.on('SIGTERM', () => shutdown('SIGTERM'));
+    process.on('SIGINT', () => shutdown('SIGINT'));
+
   } catch (error) {
-    logError('server.start', 'Failed to initialize database pool', error as Error);
-    throw error;
-  }
-
-  server = app
-    .listen(port, () => {
-      logger.info(`⚡️ ${env.appName} running on http://localhost:${port}`);
-    })
-    .on('error', (err) => logError('server.http', 'Server error', err));
-};
-
-const closeServer = () =>
-  new Promise<void>((resolve) => {
-    if (!server) {
-      return resolve();
-    }
-
-    server.close(() => resolve());
-  });
-
-const shutdown = async (signal: ShutdownSignal, error?: Error) => {
-  if (isShuttingDown) {
-    return;
-  }
-
-  isShuttingDown = true;
-  logger.warn(`Received ${signal}. Starting graceful shutdown...`);
-
-  if (error) {
-    logError('server.shutdown', 'Reason for shutdown', error);
-  }
-
-  try {
-    await closeServer();
-    await closeDatabasePool();
-    logger.info('Graceful shutdown complete.');
-    process.exit(error ? 1 : 0);
-  } catch (shutdownError) {
-    logError('server.shutdown', 'Error during shutdown', shutdownError as Error);
+    logger.error('Failed to start server', error);
     process.exit(1);
   }
 };
 
-['SIGINT', 'SIGTERM'].forEach((signal) => {
-  process.on(signal as NodeJS.Signals, () => {
-    void shutdown(signal as NodeJS.Signals);
-  });
-});
-
-process.on('uncaughtException', (error) => {
-  void shutdown('uncaughtException', error);
-});
-
-process.on('unhandledRejection', (reason) => {
-  const error = reason instanceof Error ? reason : new Error(String(reason));
-  void shutdown('unhandledRejection', error);
-});
-
-void start().catch((error) => {
-  logError('server.bootstrap', 'Failed to start server', error);
-  void shutdown('uncaughtException', error);
-});
+startServer();
