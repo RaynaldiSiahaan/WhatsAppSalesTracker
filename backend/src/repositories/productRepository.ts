@@ -119,6 +119,22 @@ class ProductRepository {
     return this.updateProduct(productId, userId, { stock_quantity: newQuantity });
   }
 
+  async decreaseStock(client: PoolClient, productId: string, quantity: number): Promise<Product | null> {
+      const text = `
+        UPDATE products
+        SET stock_quantity = stock_quantity - $2, updated_at = NOW()
+        WHERE id = $1 AND stock_quantity >= $2
+        RETURNING id, store_id, name, price, stock_quantity, image_url, is_active, created_by, created_at, updated_by, updated_at, deleted_by, deleted_at;
+      `;
+      try {
+          const res = await client.query(text, [productId, quantity]);
+          return res.rows[0] || null;
+      } catch (err) {
+          logger.error('Failed to decrease stock', { productId, quantity, error: err });
+          throw err;
+      }
+  }
+
   async softDeleteProduct(productId: string, userId: string): Promise<Product | null> {
     const text = `
       UPDATE products
