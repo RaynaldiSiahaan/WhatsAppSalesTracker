@@ -2,6 +2,7 @@ import { Router } from 'express';
 import * as authController from './controllers/authController';
 import * as storeController from './controllers/storeController';
 import * as productController from './controllers/productController';
+import * as publicController from './controllers/publicController';
 import { authMiddleware } from './middleware/authMiddleware';
 
 const router = Router();
@@ -10,6 +11,10 @@ const router = Router();
 router.post('/api/auth/register', authController.register);
 router.post('/api/auth/login', authController.login);
 router.post('/api/auth/refresh', authController.refreshToken);
+
+// --- Public Routes (No Auth Required) ---
+router.get('/api/public/catalog/:slug', publicController.getCatalog);
+router.post('/api/public/orders', publicController.createOrder);
 
 // --- Protected Routes ---
 // Apply authMiddleware to all routes below this line

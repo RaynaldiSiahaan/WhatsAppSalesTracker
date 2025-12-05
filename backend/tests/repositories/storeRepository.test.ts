@@ -37,12 +37,12 @@ describe('StoreRepository', () => {
 
       mockClient.query.mockResolvedValue({ rows: [mockStore] });
 
-      const result = await storeRepository.createStore('user-123', 'Test Store', 'Test Location');
+      const result = await storeRepository.createStore('user-123', 'Test Store', 'test-store', 'ABCDE', 'Test Location');
 
       expect(result).toEqual(mockStore);
       expect(mockClient.query).toHaveBeenCalledWith(
         expect.stringContaining('INSERT INTO stores'),
-        ['user-123', 'Test Store', 'Test Location']
+        ['user-123', 'Test Store', 'test-store', 'ABCDE', 'Test Location']
       );
       expect(mockClient.release).toHaveBeenCalled();
     });
