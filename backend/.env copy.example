@@ -1,0 +1,23 @@
+PORT=3000
+NODE_ENV=development
+
+# Database Configuration
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_NAME=toko_db
+
+# For Migrator (Raw Password)
+DB_PASSWORD=postgres
+
+# For API (Encrypted Password)
+# Password DB must be encrypted using AES-256-CBC with the keys below
+AES_KEY=0000000000000000000000000000000000000000000000000000000000000000
+AES_IV=0000000000000000
+ENCRYPTED_DB_PASSWORD=
+
+# JWT
+JWT_SECRET=your_jwt_secret_key_here
+
+# Optional: Full Connection String (if used by some tools)
+DATABASE_URL=postgres://postgres:postgres@localhost:5432/toko_db
