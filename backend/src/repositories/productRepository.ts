@@ -21,7 +21,7 @@ const query = async <T>(text: string, params: any[] = []): Promise<T[]> => {
 };
 
 class ProductRepository {
-  async createProduct(storeId: string, userId: string, data: CreateProductData): Promise<Product> {
+  async createProduct(storeId: number, userId: number, data: CreateProductData): Promise<Product> {
     const text = `
       INSERT INTO products (store_id, name, price, stock_quantity, image_url, created_by)
       VALUES ($1, $2, $3, $4, $5, $6)
@@ -38,7 +38,7 @@ class ProductRepository {
     return rows[0];
   }
 
-  async findProductById(productId: string): Promise<Product | null> {
+  async findProductById(productId: number): Promise<Product | null> {
     const text = `
       SELECT id, store_id, name, price, stock_quantity, image_url, is_active, created_by, created_at, updated_by, updated_at, deleted_by, deleted_at
       FROM products
@@ -48,7 +48,7 @@ class ProductRepository {
     return rows[0] || null;
   }
 
-  async findProductsByStoreId(storeId: string, limit: number, offset: number): Promise<Product[]> {
+  async findProductsByStoreId(storeId: number, limit: number, offset: number): Promise<Product[]> {
     const text = `
       SELECT id, store_id, name, price, stock_quantity, image_url, is_active, created_by, created_at, updated_by, updated_at, deleted_by, deleted_at
       FROM products
@@ -60,7 +60,7 @@ class ProductRepository {
     return rows;
   }
 
-  async updateProduct(productId: string, userId: string, data: UpdateProductData): Promise<Product | null> {
+  async updateProduct(productId: number, userId: number, data: UpdateProductData): Promise<Product | null> {
     const updates: string[] = [];
     const params: any[] = [productId]; // $1 is productId
     let paramIndex = 1;
@@ -111,7 +111,7 @@ class ProductRepository {
     return rows[0] || null;
   }
 
-  async updateProductStock(productId: string, userId: string, newQuantity: number): Promise<Product | null> {
+  async updateProductStock(productId: number, userId: number, newQuantity: number): Promise<Product | null> {
     // Ensure stock_quantity is not negative as per CHECK constraint in schema
     if (newQuantity < 0) {
         throw new Error('Stock quantity cannot be negative');
@@ -119,7 +119,7 @@ class ProductRepository {
     return this.updateProduct(productId, userId, { stock_quantity: newQuantity });
   }
 
-  async decreaseStock(client: PoolClient, productId: string, quantity: number): Promise<Product | null> {
+  async decreaseStock(client: PoolClient, productId: number, quantity: number): Promise<Product | null> {
       const text = `
         UPDATE products
         SET stock_quantity = stock_quantity - $2, updated_at = NOW()
@@ -135,7 +135,7 @@ class ProductRepository {
       }
   }
 
-  async softDeleteProduct(productId: string, userId: string): Promise<Product | null> {
+  async softDeleteProduct(productId: number, userId: number): Promise<Product | null> {
     const text = `
       UPDATE products
       SET is_active = FALSE, deleted_at = NOW(), deleted_by = $2, updated_at = NOW(), updated_by = $2

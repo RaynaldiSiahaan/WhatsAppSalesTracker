@@ -16,7 +16,7 @@ describe('AuthService', () => {
   describe('register', () => {
     it('should register a new user successfully', async () => {
       const mockUser = {
-        id: 'user-123',
+        id: 1,
         email: 'test@example.com',
         password_hash: 'hashed_password',
         is_active: true,
@@ -39,7 +39,7 @@ describe('AuthService', () => {
     });
 
     it('should throw BadRequestError if email already exists', async () => {
-      (userRepository.findUserByEmail as jest.Mock).mockResolvedValue({ id: 'existing' });
+      (userRepository.findUserByEmail as jest.Mock).mockResolvedValue({ id: 1 });
 
       await expect(authService.register('test@example.com', 'password'))
         .rejects.toThrow(BadRequestError);
@@ -49,7 +49,7 @@ describe('AuthService', () => {
   describe('login', () => {
     it('should login successfully and return tokens', async () => {
       const mockUser = {
-        id: 'user-123',
+        id: 1,
         email: 'test@example.com',
         password_hash: 'hashed_password',
         is_active: true
@@ -78,7 +78,7 @@ describe('AuthService', () => {
 
     it('should throw UnauthorizedError if password invalid', async () => {
       const mockUser = {
-        id: 'user-123',
+        id: 1,
         email: 'test@example.com',
         password_hash: 'hashed_password',
         is_active: true

@@ -5,7 +5,7 @@ import { storeService } from '../../src/services/storeService';
 // Mock auth middleware to bypass real authentication
 jest.mock('../../src/middleware/authMiddleware', () => ({
   authMiddleware: (req: any, res: any, next: any) => {
-    req.user = { userId: 'user-123' };
+    req.user = { userId: 1 };
     next();
   },
 }));
@@ -15,7 +15,7 @@ jest.mock('../../src/services/storeService');
 describe('Store Routes', () => {
   describe('POST /api/stores', () => {
     it('should create a store', async () => {
-      const mockStore = { id: 'store-123', name: 'Test Store' };
+      const mockStore = { id: 10, name: 'Test Store' };
       (storeService.createStore as jest.Mock).mockResolvedValue(mockStore);
 
       const response = await request(app)
@@ -29,7 +29,7 @@ describe('Store Routes', () => {
 
   describe('GET /api/stores/my', () => {
     it('should return my stores', async () => {
-      const mockStores = [{ id: 'store-123', name: 'Test Store' }];
+      const mockStores = [{ id: 10, name: 'Test Store' }];
       (storeService.getMyStores as jest.Mock).mockResolvedValue(mockStores);
 
       const response = await request(app).get('/api/stores/my');

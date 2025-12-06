@@ -12,27 +12,27 @@ describe('StoreService', () => {
   describe('createStore', () => {
     it('should create a store if valid and user has no stores', async () => {
       (storeRepository.findStoresByUserId as jest.Mock).mockResolvedValue([]);
-      (storeRepository.createStore as jest.Mock).mockResolvedValue({ id: 'store-123' });
+      (storeRepository.createStore as jest.Mock).mockResolvedValue({ id: 10 });
       // Mock findStoreBySlug and findStoreByStoreCode to return null (no collision)
       (storeRepository.findStoreBySlug as jest.Mock).mockResolvedValue(null);
       (storeRepository.findStoreByStoreCode as jest.Mock).mockResolvedValue(null);
 
-      const result = await storeService.createStore('user-123', 'New Store');
+      const result = await storeService.createStore(1, 'New Store');
 
-      expect(result).toEqual({ id: 'store-123' });
-      expect(storeRepository.findStoresByUserId).toHaveBeenCalledWith('user-123');
-      expect(storeRepository.createStore).toHaveBeenCalledWith('user-123', 'New Store', 'test-slug', 'CODE5', undefined);
+      expect(result).toEqual({ id: 10 });
+      expect(storeRepository.findStoresByUserId).toHaveBeenCalledWith(1);
+      expect(storeRepository.createStore).toHaveBeenCalledWith(1, 'New Store', 'test-slug', 'CODE5', undefined);
     });
 
     it('should throw BadRequestError if user already has a store', async () => {
-      (storeRepository.findStoresByUserId as jest.Mock).mockResolvedValue([{ id: 'existing-store' }]);
+      (storeRepository.findStoresByUserId as jest.Mock).mockResolvedValue([{ id: 10 }]);
 
-      await expect(storeService.createStore('user-123', 'Another Store'))
+      await expect(storeService.createStore(1, 'Another Store'))
         .rejects.toThrow(BadRequestError);
     });
 
     it('should throw BadRequestError if name is missing', async () => {
-      await expect(storeService.createStore('user-123', ''))
+      await expect(storeService.createStore(1, ''))
         .rejects.toThrow(BadRequestError);
     });
   });

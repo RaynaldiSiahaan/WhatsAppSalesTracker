@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { v4 as uuidv4 } from 'uuid';
+import { randomBytes } from 'crypto';
 import { userRepository } from '../repositories/userRepository';
 import { env } from '../config/env';
 import { BadRequestError, UnauthorizedError } from '../utils/custom-errors';
@@ -76,7 +76,7 @@ class AuthService {
     };
   }
 
-  async softDeleteAccount(userId: string) {
+  async softDeleteAccount(userId: number) {
     const deletedUser = await userRepository.softDeleteUser(userId);
     if (!deletedUser) {
       throw new BadRequestError('User not found');
@@ -87,19 +87,19 @@ class AuthService {
     return { message: 'Account deactivated successfully' };
   }
 
-  async changePassword(userId: string, newPassword: string) {
+  async changePassword(userId: number, newPassword: string) {
     const passwordHash = await bcrypt.hash(newPassword, 10);
     await userRepository.updateUser(userId, { password_hash: passwordHash });
     return { message: 'Password updated successfully' };
   }
 
-  private generateAccessToken(userId: string): string {
+  private generateAccessToken(userId: number): string {
     return jwt.sign({ userId }, JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRY });
   }
 
-  private async generateRefreshToken(userId: string): Promise<string> {
+  private async generateRefreshToken(userId: number): Promise<string> {
     // Use a random string for refresh token (opaque token)
-    const token = uuidv4(); 
+    const token = randomBytes(48).toString('hex');
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + REFRESH_TOKEN_EXPIRY_DAYS);
 

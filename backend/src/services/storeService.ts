@@ -3,7 +3,7 @@ import { BadRequestError, NotFoundError } from '../utils/custom-errors';
 import { generateSlug, generateStoreCode } from '../utils/slug';
 
 class StoreService {
-  async createStore(userId: string, name: string, location?: string): Promise<Store> {
+  async createStore(userId: number, name: string, location?: string): Promise<Store> {
     if (!name) {
       throw new BadRequestError('Store name is required');
     }
@@ -59,11 +59,11 @@ class StoreService {
     return storeRepository.createStore(userId, name, slug, storeCode, location);
   }
 
-  async getMyStores(userId: string): Promise<Store[]> {
+  async getMyStores(userId: number): Promise<Store[]> {
     return storeRepository.findStoresByUserId(userId);
   }
 
-  async getStoreById(storeId: string): Promise<Store> {
+  async getStoreById(storeId: number): Promise<Store> {
     const store = await storeRepository.findStoreById(storeId);
     if (!store) {
       throw new NotFoundError('Store not found');

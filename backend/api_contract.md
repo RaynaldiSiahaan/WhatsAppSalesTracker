@@ -41,21 +41,23 @@ Skema ini mencakup kedua fase (Inventaris dan Pemesanan). Audit fields (`created
 ### A. Tabel `users` (Otentikasi & Soft Delete)
 | Field | Tipe Data | Keterangan |
 | :--- | :--- | :--- |
-| `id` | UUID (PK) | User ID (digunakan di JWT). |
+| `id` | BIGINT (PK) | User ID (Generated Identity). |
 | `email` | VARCHAR | Unique. |
 | `is_active` | BOOLEAN | Status akun (Soft Delete). |
 
 ### B. Tabel `stores` (Manajemen Toko & Akses Publik)
 | Field | Tipe Data | Keterangan |
 | :--- | :--- | :--- |
-| `user_id` | UUID (FK users.id) | Pemilik Toko. Relasi: ON DELETE RESTRICT. |
+| `id` | BIGINT (PK) | Store ID (Generated Identity). |
+| `user_id` | BIGINT (FK users.id) | Pemilik Toko. Relasi: ON DELETE RESTRICT. |
 | `slug` | VARCHAR(100) | URL-friendly name (Unique). Digunakan untuk Share Link. |
 | `store_code` | CHAR(5) | Kode toko unik (Digunakan dalam order_code). |
 
 ### C. Tabel `products` (Inventaris & Katalog)
 | Field | Tipe Data | Keterangan |
 | :--- | :--- | :--- |
-| `store_id` | UUID (FK stores.id) | Relasi: ON DELETE CASCADE. |
+| `id` | BIGINT (PK) | Product ID (Generated Identity). |
+| `store_id` | BIGINT (FK stores.id) | Relasi: ON DELETE CASCADE. |
 | `price` | NUMERIC | Harga Gross (Include Tax). |
 | `stock_quantity` | INTEGER | Stok saat ini. Constraint: CHECK >= 0. |
 | `image_url` | VARCHAR | Tautan gambar produk. |
@@ -63,8 +65,9 @@ Skema ini mencakup kedua fase (Inventaris dan Pemesanan). Audit fields (`created
 ### D. Tabel `orders` (Fase 2 - Header Transaksi)
 | Field | Tipe Data | Keterangan |
 | :--- | :--- | :--- |
+| `id` | BIGINT (PK) | Order ID (Generated Identity). |
 | `order_code` | VARCHAR | Order ID yang mudah dibaca. |
-| `store_id` | UUID (FK stores.id) | Toko yang menerima pesanan. |
+| `store_id` | BIGINT (FK stores.id) | Toko yang menerima pesanan. |
 | `customer_name` | VARCHAR | Nama pelanggan. |
 | `customer_phone` | VARCHAR | Nomor telepon pelanggan. |
 | `pickup_time` | TIMESTAMPTZ | Waktu pengambilan pesanan. |
@@ -109,7 +112,7 @@ curl -X POST http://localhost:3000/api/auth/register \
   "success": true,
   "message": "User registered successfully",
   "data": {
-    "id": "uuid-user-id",
+    "id": 1,
     "email": "seller@example.com",
     "is_active": true
   }
@@ -139,7 +142,7 @@ curl -X POST http://localhost:3000/api/auth/login \
   "message": "Login successful",
   "data": {
     "user": {
-      "id": "uuid-user-id",
+      "id": 1,
       "email": "seller@example.com"
     },
     "accessToken": "jwt-access-token...",
@@ -245,7 +248,7 @@ curl -X POST http://localhost:3000/api/stores \
   "success": true,
   "message": "Store created successfully",
   "data": {
-    "id": "uuid-store-id",
+    "id": 10,
     "name": "Warung Budi",
     "slug": "warung-budi",
     "store_code": "A1B2C",
@@ -272,7 +275,7 @@ curl -X GET http://localhost:3000/api/stores/my \
   "message": "My stores retrieved successfully",
   "data": [
     {
-      "id": "uuid-store-id",
+      "id": 10,
       "name": "Warung Budi",
       "slug": "warung-budi",
       "store_code": "A1B2C"
@@ -289,7 +292,7 @@ curl -X GET http://localhost:3000/api/stores/my \
 
 **cURL:**
 ```bash
-curl -X POST http://localhost:3000/api/stores/<STORE_ID>/products \
+curl -X POST http://localhost:3000/api/stores/10/products \
 -H "Authorization: Bearer <ACCESS_TOKEN>" \
 -H "Content-Type: application/json" \
 -d 
@@ -308,7 +311,7 @@ curl -X POST http://localhost:3000/api/stores/<STORE_ID>/products \
   "success": true,
   "message": "Product added successfully",
   "data": {
-    "id": "uuid-product-id",
+    "id": 50,
     "name": "Nasi Goreng Spesial",
     "price": "25000",
     "stock_quantity": 100
@@ -322,7 +325,7 @@ curl -X POST http://localhost:3000/api/stores/<STORE_ID>/products \
 
 **cURL:**
 ```bash
-curl -X PATCH http://localhost:3000/api/products/<PRODUCT_ID>/stock \
+curl -X PATCH http://localhost:3000/api/products/50/stock \
 -H "Authorization: Bearer <ACCESS_TOKEN>" \
 -H "Content-Type: application/json" \
 -d 
@@ -338,7 +341,7 @@ curl -X PATCH http://localhost:3000/api/products/<PRODUCT_ID>/stock \
   "success": true,
   "message": "Product stock updated successfully",
   "data": {
-    "id": "uuid-product-id",
+    "id": 50,
     "stock_quantity": 50
   }
 }
@@ -350,7 +353,7 @@ curl -X PATCH http://localhost:3000/api/products/<PRODUCT_ID>/stock \
 
 **cURL:**
 ```bash
-curl -X DELETE http://localhost:3000/api/products/<PRODUCT_ID> \
+curl -X DELETE http://localhost:3000/api/products/50 \
 -H "Authorization: Bearer <ACCESS_TOKEN>"
 ```
 
@@ -382,14 +385,14 @@ curl -X GET http://localhost:3000/api/public/catalog/warung-budi
   "message": "Catalog retrieved successfully",
   "data": {
     "store": {
-      "id": "uuid-store-id",
+      "id": 10,
       "name": "Warung Budi",
       "slug": "warung-budi",
       "location": "Pasar Modern BSD"
     },
     "products": [
       {
-        "id": "uuid-product-id",
+        "id": 50,
         "name": "Nasi Goreng Spesial",
         "price": "25000",
         "stock_quantity": 50,
@@ -410,13 +413,13 @@ curl -X POST http://localhost:3000/api/public/orders \
 -H "Content-Type: application/json" \
 -d 
 '{ 
-  "store_id": "<STORE_ID>",
+  "store_id": 10,
   "customer_name": "Andi",
   "customer_phone": "08123456789",
   "pickup_time": "2023-12-25T10:00:00Z",
   "items": [
     {
-      "product_id": "<PRODUCT_ID>",
+      "product_id": 50,
       "quantity": 2
     }
   ]
@@ -430,17 +433,46 @@ curl -X POST http://localhost:3000/api/public/orders \
   "success": true,
   "message": "Order created successfully",
   "data": {
-    "id": "uuid-order-id",
+    "id": 500,
     "order_code": "A1B2C-250101-X9Y8",
     "status": "RECEIVED",
     "total_amount_gross": "50000",
     "items": [
       {
-        "product_id": "uuid-product-id",
+        "product_id": 50,
         "quantity": 2,
         "price_at_order": 25000
       }
     ]
   }
 }
+```
+
+## 5. Mock Data / Seeder
+
+Gunakan SQL berikut untuk mengisi database dengan data awal untuk keperluan testing dan development. Pastikan tabel sudah dibuat sebelum menjalankan skema ini.
+
+```sql
+-- Mock Data / Seeder untuk Backend Toko (PostgreSQL 14 - BigInt)
+
+BEGIN;
+
+-- 1. Insert Users
+-- Password hash contoh (perlu diganti dengan hash bcrypt valid dari aplikasi jika ingin login)
+INSERT INTO users (email, password_hash, is_active) VALUES
+('seller1@example.com', '$2a$10$X7...validhashexample...', true),
+('seller2@example.com', '$2a$10$X7...validhashexample...', true);
+
+-- 2. Insert Stores
+INSERT INTO stores (user_id, name, slug, store_code, location, created_by) VALUES
+(1, 'Toko Maju Jaya', 'toko-maju-jaya', 'TMJ01', 'Jakarta Selatan', 1),
+(2, 'Warung Berkah', 'warung-berkah', 'WBK99', 'Bandung', 2);
+
+-- 3. Insert Products
+INSERT INTO products (store_id, name, price, stock_quantity, image_url, is_active, created_by) VALUES
+(1, 'Beras Premium 5kg', 65000, 50, 'https://example.com/beras.jpg', true, 1),
+(1, 2, 'Minyak Goreng 2L', 32000, 100, 'https://example.com/minyak.jpg', true, 1),
+(2, 'Indomie Goreng', 3500, 200, 'https://example.com/indomie.jpg', true, 2);
+
+COMMIT;
 ```

@@ -27,12 +27,12 @@ describe('OrderRepository', () => {
 
   describe('createOrder', () => {
     it('should create an order using client', async () => {
-      const mockOrder = { id: 'order-123', order_code: 'CODE' };
+      const mockOrder = { id: 500, order_code: 'CODE' };
       mockClient.query.mockResolvedValue({ rows: [mockOrder] });
 
       const result = await orderRepository.createOrder(
         mockClient,
-        'store-123',
+        10,
         'CODE',
         'Cust',
         '123',
@@ -50,7 +50,7 @@ describe('OrderRepository', () => {
 
   describe('findOrderByCode', () => {
     it('should return order if found', async () => {
-      const mockOrder = { id: 'order-123', order_code: 'CODE' };
+      const mockOrder = { id: 500, order_code: 'CODE' };
       // Since findOrderByCode uses this.query which defaults to pool.query
       // We need to mock pool.query. 
       // Wait, `pool` is imported as default export in `config/database.ts`.

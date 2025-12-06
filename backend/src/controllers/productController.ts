@@ -8,7 +8,7 @@ import {
   isNonNegativeNumber, 
   isNonNegativeInteger, 
   isValidUrl, 
-  isValidUUID 
+  isValidId
 } from '../utils/validation';
 
 export const createProduct = async (req: Request, res: Response, next: NextFunction) => {
@@ -16,7 +16,7 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
     const { storeId } = req.params;
     const { name, price, stock_quantity, image_url } = req.body;
 
-    if (!isValidUUID(storeId)) {
+    if (!isValidId(storeId)) {
       throw new BadRequestError('Invalid store ID format');
     }
 
@@ -36,7 +36,7 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
       throw new BadRequestError('Image URL must be a valid URL');
     }
 
-    const userId = (req as any).user?.userId;
+    const userId = (req as any).user?.userId as number;
 
     if (!userId) {
       return sendResponse(res, responseTemplates.unauthorized('User not authenticated'));
@@ -44,7 +44,7 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
 
     const newProduct = await productService.addProduct(
       userId,
-      storeId,
+      Number(storeId),
       { name, price, stock_quantity, image_url }
     );
     return sendResponse(res, responseTemplates.ok('Product added successfully', newProduct));
@@ -58,7 +58,7 @@ export const updateStock = async (req: Request, res: Response, next: NextFunctio
     const { productId } = req.params;
     const { newQuantity } = req.body;
 
-    if (!isValidUUID(productId)) {
+    if (!isValidId(productId)) {
       throw new BadRequestError('Invalid product ID format');
     }
 
@@ -66,13 +66,13 @@ export const updateStock = async (req: Request, res: Response, next: NextFunctio
       throw new BadRequestError('New quantity must be a non-negative integer');
     }
 
-    const userId = (req as any).user?.userId;
+    const userId = (req as any).user?.userId as number;
 
     if (!userId) {
       return sendResponse(res, responseTemplates.unauthorized('User not authenticated'));
     }
 
-    const updatedProduct = await productService.updateStock(userId, productId, newQuantity);
+    const updatedProduct = await productService.updateStock(userId, Number(productId), newQuantity);
     return sendResponse(res, responseTemplates.ok('Product stock updated successfully', updatedProduct));
   } catch (error) {
     next(error);
@@ -83,17 +83,17 @@ export const deleteProduct = async (req: Request, res: Response, next: NextFunct
   try {
     const { productId } = req.params;
 
-    if (!isValidUUID(productId)) {
+    if (!isValidId(productId)) {
       throw new BadRequestError('Invalid product ID format');
     }
 
-    const userId = (req as any).user?.userId;
+    const userId = (req as any).user?.userId as number;
 
     if (!userId) {
       return sendResponse(res, responseTemplates.unauthorized('User not authenticated'));
     }
 
-    const result = await productService.deleteProduct(userId, productId);
+    const result = await productService.deleteProduct(userId, Number(productId));
     return sendResponse(res, responseTemplates.ok(result.message));
   } catch (error) {
     next(error);

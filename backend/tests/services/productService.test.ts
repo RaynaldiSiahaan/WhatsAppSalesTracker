@@ -9,22 +9,22 @@ jest.mock('../../src/repositories/storeRepository');
 describe('ProductService', () => {
   describe('addProduct', () => {
     it('should add a product if user owns the store', async () => {
-      (storeRepository.findStoreById as jest.Mock).mockResolvedValue({ user_id: 'user-123' });
-      (productRepository.createProduct as jest.Mock).mockResolvedValue({ id: 'prod-123' });
+      (storeRepository.findStoreById as jest.Mock).mockResolvedValue({ user_id: 1 });
+      (productRepository.createProduct as jest.Mock).mockResolvedValue({ id: 50 });
 
-      const result = await productService.addProduct('user-123', 'store-123', {
+      const result = await productService.addProduct(1, 10, {
         name: 'Product',
         price: 10,
         stock_quantity: 5,
       });
 
-      expect(result).toEqual({ id: 'prod-123' });
+      expect(result).toEqual({ id: 50 });
     });
 
     it('should throw ForbiddenError if user does not own the store', async () => {
-      (storeRepository.findStoreById as jest.Mock).mockResolvedValue({ user_id: 'other-user' });
+      (storeRepository.findStoreById as jest.Mock).mockResolvedValue({ user_id: 2 });
 
-      await expect(productService.addProduct('user-123', 'store-123', {
+      await expect(productService.addProduct(1, 10, {
         name: 'Product',
         price: 10,
         stock_quantity: 5,
@@ -32,7 +32,7 @@ describe('ProductService', () => {
     });
 
     it('should throw BadRequestError for negative price', async () => {
-      await expect(productService.addProduct('user-123', 'store-123', {
+      await expect(productService.addProduct(1, 10, {
         name: 'Product',
         price: -10,
         stock_quantity: 5,

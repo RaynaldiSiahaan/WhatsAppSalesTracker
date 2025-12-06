@@ -4,7 +4,7 @@ import { Product, CreateProductData } from '../entities/product';
 import { BadRequestError, NotFoundError, ForbiddenError, InternalServerError } from '../utils/custom-errors';
 
 class ProductService {
-  async addProduct(userId: string, storeId: string, data: CreateProductData): Promise<Product> {
+  async addProduct(userId: number, storeId: number, data: CreateProductData): Promise<Product> {
     // 1. Validate input data (basic checks, more detailed validation can be done in DTO/Controller)
     if (!data.name || data.price === undefined || data.stock_quantity === undefined) {
       throw new BadRequestError('Product name, price, and stock quantity are required.');
@@ -29,7 +29,7 @@ class ProductService {
     return productRepository.createProduct(storeId, userId, data);
   }
 
-  async updateStock(userId: string, productId: string, newQuantity: number): Promise<Product> {
+  async updateStock(userId: number, productId: number, newQuantity: number): Promise<Product> {
     // 1. Validate input
     if (newQuantity < 0) {
       throw new BadRequestError('Stock quantity cannot be negative.');
@@ -55,7 +55,7 @@ class ProductService {
     return updatedProduct;
   }
 
-  async deleteProduct(userId: string, productId: string): Promise<{ message: string }> {
+  async deleteProduct(userId: number, productId: number): Promise<{ message: string }> {
     // 1. Verify product exists
     const product = await productRepository.findProductById(productId);
     if (!product) {
