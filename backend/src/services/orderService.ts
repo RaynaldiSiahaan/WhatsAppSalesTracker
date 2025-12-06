@@ -102,6 +102,10 @@ class OrderService {
 
       return orderRepository.findOrdersByStoreId(storeId);
   }
+
+  async getSellerStats(userId: number) {
+    return orderRepository.getDashboardStats(userId);
+  }
 }
 
 export const orderService = new OrderService();

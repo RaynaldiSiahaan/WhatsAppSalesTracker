@@ -7,7 +7,7 @@ import { BadRequestError, UnauthorizedError } from '../utils/custom-errors';
 
 // Secret key for JWT
 const JWT_SECRET = env.jwtSecret;
-const ACCESS_TOKEN_EXPIRY = '24h';
+const ACCESS_TOKEN_EXPIRY = '1h';
 const REFRESH_TOKEN_EXPIRY_DAYS = 7;
 
 class AuthService {

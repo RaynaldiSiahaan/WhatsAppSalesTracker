@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { storeService } from '../services/storeService';
 import { sendResponse } from '../utils/http';
 import { responseTemplates } from '../constants/responses';
-import { BadRequestError } from '../utils/custom-errors';
+import { BadRequestError, UnauthorizedError } from '../utils/custom-errors';
 import { isValidName, isOptionalString } from '../utils/validation';
 
 export const createStore = async (req: Request, res: Response, next: NextFunction) => {
@@ -21,7 +21,7 @@ export const createStore = async (req: Request, res: Response, next: NextFunctio
     const userId = (req as any).user?.userId as number;
 
     if (!userId) {
-      return sendResponse(res, responseTemplates.unauthorized('User not authenticated'));
+      throw new UnauthorizedError('User not authenticated');
     }
 
     const newStore = await storeService.createStore(userId, name, location);
@@ -36,7 +36,7 @@ export const getMyStores = async (req: Request, res: Response, next: NextFunctio
     const userId = (req as any).user?.userId as number;
 
     if (!userId) {
-      return sendResponse(res, responseTemplates.unauthorized('User not authenticated'));
+      throw new UnauthorizedError('User not authenticated');
     }
 
     const stores = await storeService.getMyStores(userId);
