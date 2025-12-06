@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { productService } from '../services/productService';
 import { sendResponse } from '../utils/http';
 import { responseTemplates } from '../constants/responses';
-import { BadRequestError } from '../utils/custom-errors';
+import { BadRequestError, UnauthorizedError } from '../utils/custom-errors';
 import { 
   isValidName, 
   isNonNegativeNumber, 
@@ -39,7 +39,7 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
     const userId = (req as any).user?.userId as number;
 
     if (!userId) {
-      return sendResponse(res, responseTemplates.unauthorized('User not authenticated'));
+      throw new UnauthorizedError('User not authenticated');
     }
 
     const newProduct = await productService.addProduct(
@@ -69,7 +69,7 @@ export const updateStock = async (req: Request, res: Response, next: NextFunctio
     const userId = (req as any).user?.userId as number;
 
     if (!userId) {
-      return sendResponse(res, responseTemplates.unauthorized('User not authenticated'));
+      throw new UnauthorizedError('User not authenticated');
     }
 
     const updatedProduct = await productService.updateStock(userId, Number(productId), newQuantity);
@@ -90,7 +90,7 @@ export const deleteProduct = async (req: Request, res: Response, next: NextFunct
     const userId = (req as any).user?.userId as number;
 
     if (!userId) {
-      return sendResponse(res, responseTemplates.unauthorized('User not authenticated'));
+      throw new UnauthorizedError('User not authenticated');
     }
 
     const result = await productService.deleteProduct(userId, Number(productId));

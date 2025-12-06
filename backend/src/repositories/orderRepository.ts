@@ -79,6 +79,31 @@ export class OrderRepository {
       const rows = await this.query<Order>(text, [storeId, limit, offset]);
       return rows;
   }
+
+  async getDashboardStats(userId: number): Promise<{ total_sales_gross: number, orders_count: { pending: number, completed: number, total: number } }> {
+    const text = `
+      SELECT 
+          COALESCE(SUM(CASE WHEN o.status = 'COMPLETED' THEN o.total_amount_gross ELSE 0 END), 0) as total_sales_gross,
+          COUNT(CASE WHEN o.status IN ('RECEIVED', 'PREPARING', 'READY_FOR_PICKUP') THEN 1 END) as pending_count,
+          COUNT(CASE WHEN o.status = 'COMPLETED' THEN 1 END) as completed_count,
+          COUNT(o.id) as total_count
+      FROM orders o
+      JOIN stores s ON o.store_id = s.id
+      WHERE s.user_id = $1
+    `;
+    
+    const rows = await this.query<any>(text, [userId]);
+    const row = rows[0];
+
+    return {
+      total_sales_gross: Number(row.total_sales_gross),
+      orders_count: {
+        pending: Number(row.pending_count),
+        completed: Number(row.completed_count),
+        total: Number(row.total_count)
+      }
+    };
+  }
 }
 
 export const orderRepository = new OrderRepository();

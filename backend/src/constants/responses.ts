@@ -24,6 +24,10 @@ export const responseTemplates = {
   ok: <T>(message = 'Request processed successfully', data?: T): BaseResponse<T> =>
     createResponse(200, true, message, data),
 
+  // ERROR (Generic)
+  error: (statusCode: number, errorDetail: string, message?: string): BaseResponse<unknown> =>
+    createResponse(statusCode, false, message, null, errorDetail),
+
   // ERROR (400 Bad Request)
   badRequest: (errorDetail = 'Your request is invalid', message?: string): BaseResponse<unknown> =>
     createResponse(400, false, message || 'Bad Request', null, errorDetail),

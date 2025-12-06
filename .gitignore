@@ -42,3 +42,9 @@ backend/node_modules/
 backend/dist/
 backend/.env
 backend/logs/
+
+# Frontend artifacts
+frontend/dist/
+frontend/node_modules
+frontend/.env
+frontend/logs/

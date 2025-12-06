@@ -3,7 +3,10 @@ import * as authController from './controllers/authController';
 import * as storeController from './controllers/storeController';
 import * as productController from './controllers/productController';
 import * as publicController from './controllers/publicController';
+import * as uploadController from './controllers/uploadController';
+import * as dashboardController from './controllers/dashboardController';
 import { authMiddleware } from './middleware/authMiddleware';
+import { upload } from './utils/upload';
 
 const router = Router();
 
@@ -21,6 +24,14 @@ router.post('/api/public/orders', publicController.createOrder);
 router.use('/api/user', authMiddleware);
 router.use('/api/stores', authMiddleware);
 router.use('/api/products', authMiddleware);
+router.use('/api/upload', authMiddleware);
+router.use('/api/seller', authMiddleware);
+
+// Upload
+router.post('/api/upload', upload.single('image'), uploadController.uploadImage);
+
+// Dashboard
+router.get('/api/seller/dashboard/stats', dashboardController.getDashboardStats);
 
 // User
 router.delete('/api/user/account', authController.deleteAccount);
