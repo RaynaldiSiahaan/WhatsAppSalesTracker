@@ -45,6 +45,7 @@ export interface OrderPayload {
   store_id: number;
   customer_name: string;
   customer_phone: string;
+  pickup_time: string; // Added pickup_time
   items: { product_id: number; quantity: number }[];
 }
 
@@ -55,6 +56,15 @@ export interface LoginResponse {
   };
   accessToken: string;
   refreshToken: string;
+}
+
+export interface DashboardStats {
+  total_sales_gross: number;
+  orders_count: {
+    pending: number;
+    completed: number;
+    total: number;
+  };
 }
 
 export interface ApiResponse<T> {

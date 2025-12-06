@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { storeService } from '@/services/storeService';
+import { dashboardService } from '@/services/dashboardService';
 import { Link } from 'react-router-dom';
 import { Plus, Store as StoreIcon, TrendingUp, ShoppingBag } from 'lucide-react';
 import { useForm } from 'react-hook-form';
@@ -18,6 +19,14 @@ const Dashboard = () => {
     }
   });
 
+  // Fetch Dashboard Stats
+  const { data: statsResponse, isLoading: isLoadingStats } = useQuery({
+    queryKey: ['dashboard-stats'],
+    queryFn: () => dashboardService.getStats()
+  });
+
+  const stats = statsResponse?.data;
+
   // Create Store Mutation
   const { register, handleSubmit, reset } = useForm();
   const createMutation = useMutation({
@@ -26,6 +35,10 @@ const Dashboard = () => {
       queryClient.invalidateQueries({ queryKey: ['my-stores'] });
       reset();
       alert(t.storeCreated);
+    },
+    onError: (error: any) => {
+        // Handle error specifically for store creation (e.g., limit reached)
+        alert(error.message || 'Failed to create store');
     }
   });
 
@@ -33,13 +46,13 @@ const Dashboard = () => {
     createMutation.mutate(data);
   };
 
-  if (isLoadingStores) return <div className="p-8">{t.loading} {t.dashboardTitle}...</div>;
+  if (isLoadingStores || isLoadingStats) return <div className="p-8">{t.loading} {t.dashboardTitle}...</div>;
 
   return (
     <div>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">{t.dashboardTitle}</h1>
 
-      {/* Statistics Cards (Mock Data for now as per spec requirement to add backend) */}
+      {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
           <div className="flex items-center gap-4">
@@ -48,7 +61,7 @@ const Dashboard = () => {
             </div>
             <div>
               <p className="text-sm text-gray-500 font-medium">{t.totalSales}</p>
-              <p className="text-2xl font-bold text-gray-900">Rp 0</p>
+              <p className="text-2xl font-bold text-gray-900">Rp {stats?.total_sales_gross.toLocaleString() || 0}</p>
             </div>
           </div>
         </div>
@@ -59,7 +72,9 @@ const Dashboard = () => {
             </div>
             <div>
               <p className="text-sm text-gray-500 font-medium">{t.totalOrders}</p>
-              <p className="text-2xl font-bold text-gray-900">0</p>
+              <p className="text-2xl font-bold text-gray-900">
+                  {stats?.orders_count.total || 0} <span className="text-sm font-normal text-gray-500">({stats?.orders_count.pending || 0} Pending)</span>
+              </p>
             </div>
           </div>
         </div>

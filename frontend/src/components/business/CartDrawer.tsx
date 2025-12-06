@@ -18,6 +18,11 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
   const navigate = useNavigate();
   const { t } = useLanguage();
 
+  // Initialize pickupTime to current time + 1 hour for a reasonable default
+  const defaultPickupTime = new Date();
+  defaultPickupTime.setHours(defaultPickupTime.getHours() + 1);
+  const [pickupTime, setPickupTime] = useState(defaultPickupTime.toISOString().slice(0, 16)); // YYYY-MM-DDTHH:MM format for datetime-local input
+
   const total = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
   const handleCheckout = async (e: React.FormEvent) => {
@@ -30,6 +35,7 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
         store_id: storeId,
         customer_name: customerName,
         customer_phone: customerPhone,
+        pickup_time: new Date(pickupTime).toISOString(), // Ensure ISO string for backend
         items: items.map((item) => ({
           product_id: item.productId,
           quantity: item.quantity,
@@ -139,9 +145,10 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
 
               <form onSubmit={handleCheckout} className="space-y-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">{t.fullName}</label>
+                  <label htmlFor="customerName" className="block text-sm font-medium text-gray-700">{t.fullName}</label>
                   <input 
                     type="text" 
+                    id="customerName"
                     required
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
@@ -150,14 +157,26 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">{t.whatsappNumber}</label>
+                  <label htmlFor="customerPhone" className="block text-sm font-medium text-gray-700">{t.whatsappNumber}</label>
                   <input 
                     type="tel" 
+                    id="customerPhone"
                     required
                     value={customerPhone}
                     onChange={(e) => setCustomerPhone(e.target.value)}
                     className="mt-1 block w-full rounded-md border-gray-300 border shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     placeholder={t.phonePlaceholder}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="pickupTime" className="block text-sm font-medium text-gray-700">Pickup Time</label>
+                  <input
+                    type="datetime-local"
+                    id="pickupTime"
+                    required
+                    value={pickupTime}
+                    onChange={(e) => setPickupTime(e.target.value)}
+                    className="mt-1 block w-full rounded-md border-gray-300 border shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   />
                 </div>
                 <button
