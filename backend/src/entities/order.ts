@@ -1,7 +1,7 @@
 export interface Order {
-  id: string;
+  id: number;
   order_code: string;
-  store_id: string;
+  store_id: number;
   customer_name: string;
   customer_phone: string;
   pickup_time: Date;
@@ -12,9 +12,9 @@ export interface Order {
 }
 
 export interface OrderItem {
-  id: string;
-  order_id: string;
-  product_id: string;
+  id: number;
+  order_id: number;
+  product_id: number;
   name: string;
   quantity: number;
   price_at_order: number;
@@ -30,12 +30,12 @@ export enum OrderStatus {
 }
 
 export interface CreateOrderItemData {
-  product_id: string;
+  product_id: number;
   quantity: number;
 }
 
 export interface CreateOrderData {
-  store_id: string;
+  store_id: number;
   customer_name: string;
   customer_phone: string;
   pickup_time: Date | string;

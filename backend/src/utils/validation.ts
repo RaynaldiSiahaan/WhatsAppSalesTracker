@@ -1,8 +1,12 @@
-export const isValidUUID = (id: unknown): boolean => {
-  if (typeof id !== 'string') return false;
-  // Regex for UUID v4 (and generally v1-v5)
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  return uuidRegex.test(id);
+export const isValidId = (id: unknown): boolean => {
+  if (typeof id === 'number') {
+    return Number.isInteger(id) && id > 0;
+  }
+  if (typeof id === 'string') {
+    const num = Number(id);
+    return Number.isInteger(num) && num > 0;
+  }
+  return false;
 };
 
 export const isValidName = (name: unknown): boolean => {

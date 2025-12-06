@@ -25,17 +25,17 @@ describe('ProductRepository', () => {
   describe('createProduct', () => {
     it('should create a product and return it', async () => {
       const mockProduct = {
-        id: 'prod-123',
-        store_id: 'store-123',
+        id: 50,
+        store_id: 10,
         name: 'Test Product',
         price: 100,
         stock_quantity: 10,
-        created_by: 'user-123',
+        created_by: 1,
       };
 
       mockClient.query.mockResolvedValue({ rows: [mockProduct] });
 
-      const result = await productRepository.createProduct('store-123', 'user-123', {
+      const result = await productRepository.createProduct(10, 1, {
         name: 'Test Product',
         price: 100,
         stock_quantity: 10,
@@ -44,22 +44,22 @@ describe('ProductRepository', () => {
       expect(result).toEqual(mockProduct);
       expect(mockClient.query).toHaveBeenCalledWith(
         expect.stringContaining('INSERT INTO products'),
-        ['store-123', 'Test Product', 100, 10, null, 'user-123']
+        [10, 'Test Product', 100, 10, null, 1]
       );
     });
   });
 
   describe('findProductById', () => {
     it('should return a product by id', async () => {
-      const mockProduct = { id: 'prod-123', name: 'Test Product' };
+      const mockProduct = { id: 50, name: 'Test Product' };
       mockClient.query.mockResolvedValue({ rows: [mockProduct] });
 
-      const result = await productRepository.findProductById('prod-123');
+      const result = await productRepository.findProductById(50);
 
       expect(result).toEqual(mockProduct);
       expect(mockClient.query).toHaveBeenCalledWith(
         expect.stringContaining('SELECT'),
-        ['prod-123']
+        [50]
       );
     });
   });

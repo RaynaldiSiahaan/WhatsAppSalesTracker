@@ -18,7 +18,7 @@ export const createStore = async (req: Request, res: Response, next: NextFunctio
     }
 
     // Assuming userId is available from authentication middleware
-    const userId = (req as any).user?.userId;
+    const userId = (req as any).user?.userId as number;
 
     if (!userId) {
       return sendResponse(res, responseTemplates.unauthorized('User not authenticated'));
@@ -33,7 +33,7 @@ export const createStore = async (req: Request, res: Response, next: NextFunctio
 
 export const getMyStores = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = (req as any).user?.userId;
+    const userId = (req as any).user?.userId as number;
 
     if (!userId) {
       return sendResponse(res, responseTemplates.unauthorized('User not authenticated'));

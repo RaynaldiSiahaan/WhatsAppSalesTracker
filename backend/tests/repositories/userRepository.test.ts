@@ -25,7 +25,7 @@ describe('UserRepository', () => {
   describe('createUser', () => {
     it('should insert a user and return it', async () => {
       const mockUser = {
-        id: 'user-123',
+        id: 1,
         email: 'test@example.com',
         password_hash: 'hash',
         is_active: true,
@@ -44,7 +44,7 @@ describe('UserRepository', () => {
 
   describe('findUserByEmail', () => {
     it('should return user if found', async () => {
-      const mockUser = { id: 'user-123', email: 'test@example.com' };
+      const mockUser = { id: 1, email: 'test@example.com' };
       mockClient.query.mockResolvedValue({ rows: [mockUser] });
 
       const result = await userRepository.findUserByEmail('test@example.com');

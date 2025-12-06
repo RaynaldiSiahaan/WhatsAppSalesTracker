@@ -3,7 +3,7 @@ import pool from '../config/database';
 import { logger } from '../utils/logger';
 
 export interface User {
-  id: string;
+  id: number;
   email: string;
   password_hash: string;
   is_active: boolean;
@@ -14,7 +14,7 @@ export interface User {
 
 export interface RefreshToken {
   token: string;
-  user_id: string;
+  user_id: number;
   expires_at: Date;
   created_at: Date;
 }
@@ -56,7 +56,7 @@ class UserRepository {
     return rows[0] || null;
   }
 
-  async findUserById(id: string): Promise<User | null> {
+  async findUserById(id: number): Promise<User | null> {
     const text = `
       SELECT id, email, password_hash, is_active, deleted_at, created_at, updated_at
       FROM users
@@ -66,7 +66,7 @@ class UserRepository {
     return rows[0] || null;
   }
 
-  async softDeleteUser(userId: string): Promise<User | null> {
+  async softDeleteUser(userId: number): Promise<User | null> {
     const text = `
       UPDATE users
       SET is_active = FALSE, deleted_at = NOW(), updated_at = NOW()
@@ -77,7 +77,7 @@ class UserRepository {
     return rows[0] || null;
   }
 
-  async updateUser(userId: string, data: Partial<{ email: string; password_hash: string }>): Promise<User | null> {
+  async updateUser(userId: number, data: Partial<{ email: string; password_hash: string }>): Promise<User | null> {
     const updates: string[] = [];
     const params: any[] = [userId];
     let paramIndex = 1;
@@ -110,7 +110,7 @@ class UserRepository {
     return rows[0] || null;
   }
 
-  async saveRefreshToken(token: string, userId: string, expiresAt: Date): Promise<RefreshToken> {
+  async saveRefreshToken(token: string, userId: number, expiresAt: Date): Promise<RefreshToken> {
     const text = `
       INSERT INTO refresh_tokens (token, user_id, expires_at)
       VALUES ($1, $2, $3)
@@ -138,7 +138,7 @@ class UserRepository {
     await query(text, [token]);
   }
 
-  async deleteRefreshTokensByUserId(userId: string): Promise<void> {
+  async deleteRefreshTokensByUserId(userId: number): Promise<void> {
     const text = `
       DELETE FROM refresh_tokens
       WHERE user_id = $1;

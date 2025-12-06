@@ -16,7 +16,7 @@ export class OrderRepository {
 
   async createOrder(
     client: PoolClient,
-    storeId: string,
+    storeId: number,
     orderCode: string,
     customerName: string,
     customerPhone: string,
@@ -42,8 +42,8 @@ export class OrderRepository {
 
   async createOrderItem(
     client: PoolClient,
-    orderId: string,
-    productId: string,
+    orderId: number,
+    productId: number,
     name: string,
     quantity: number,
     priceAtOrder: number
@@ -69,7 +69,7 @@ export class OrderRepository {
     return rows[0] || null;
   }
   
-  async findOrdersByStoreId(storeId: string, limit: number = 20, offset: number = 0): Promise<Order[]> {
+  async findOrdersByStoreId(storeId: number, limit: number = 20, offset: number = 0): Promise<Order[]> {
       const text = `
         SELECT * FROM orders 
         WHERE store_id = $1 

@@ -3,15 +3,15 @@ import pool from '../config/database';
 import { logger } from '../utils/logger';
 
 export interface Store {
-  id: string;
-  user_id: string;
+  id: number;
+  user_id: number;
   name: string;
   location: string | null;
   slug: string;
   store_code: string;
-  created_by: string | null; // User ID who created the store
+  created_by: number | null; // User ID who created the store
   created_at: Date;
-  updated_by: string | null; // User ID who last updated the store
+  updated_by: number | null; // User ID who last updated the store
   updated_at: Date;
 }
 
@@ -32,7 +32,7 @@ const query = async <T>(text: string, params: any[] = []): Promise<T[]> => {
 };
 
 class StoreRepository {
-  async createStore(userId: string, name: string, slug: string, storeCode: string, location: string | null = null): Promise<Store> {
+  async createStore(userId: number, name: string, slug: string, storeCode: string, location: string | null = null): Promise<Store> {
     const text = `
       INSERT INTO stores (user_id, name, slug, store_code, location, created_by)
       VALUES ($1, $2, $3, $4, $5, $1) -- created_by is the same as user_id initially
@@ -42,7 +42,7 @@ class StoreRepository {
     return rows[0];
   }
 
-  async findStoresByUserId(userId: string): Promise<Store[]> {
+  async findStoresByUserId(userId: number): Promise<Store[]> {
     const text = `
       SELECT id, user_id, name, slug, store_code, location, created_by, created_at, updated_by, updated_at
       FROM stores
@@ -52,7 +52,7 @@ class StoreRepository {
     return rows;
   }
 
-  async findStoreById(storeId: string): Promise<Store | null> {
+  async findStoreById(storeId: number): Promise<Store | null> {
     const text = `
       SELECT id, user_id, name, slug, store_code, location, created_by, created_at, updated_by, updated_at
       FROM stores
@@ -82,7 +82,7 @@ class StoreRepository {
     return rows[0] || null;
   }
 
-  async updateStore(storeId: string, updatedByUserId: string, data: Partial<{ name: string; location: string | null }>): Promise<Store | null> {
+  async updateStore(storeId: number, updatedByUserId: number, data: Partial<{ name: string; location: string | null }>): Promise<Store | null> {
     const updates: string[] = [];
     const params: any[] = [storeId];
     let paramIndex = 1;
@@ -120,13 +120,13 @@ class StoreRepository {
 
   // The spec doesn't explicitly mention soft delete for stores, only for users and products.
   // I will implement a hard delete for now. If soft delete is required, the table schema needs modification.
-  async deleteStore(storeId: string): Promise<boolean> {
+  async deleteStore(storeId: number): Promise<boolean> {
     const text = `
       DELETE FROM stores
       WHERE id = $1
       RETURNING id;
     `;
-    const rows = await query<{ id: string }>(text, [storeId]);
+    const rows = await query<{ id: number }>(text, [storeId]);
     return rows.length > 0;
   }
 }

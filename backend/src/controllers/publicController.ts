@@ -4,7 +4,7 @@ import { orderService } from '../services/orderService';
 import { sendResponse } from '../utils/http';
 import { responseTemplates } from '../constants/responses';
 import { BadRequestError } from '../utils/custom-errors';
-import { isValidUUID } from '../utils/validation';
+import { isValidId } from '../utils/validation';
 
 export const getCatalog = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -25,7 +25,7 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
     const { store_id, customer_name, customer_phone, pickup_time, items } = req.body;
 
     // Basic Validation
-    if (!isValidUUID(store_id)) {
+    if (!isValidId(store_id)) {
       throw new BadRequestError('Invalid store ID');
     }
     if (!customer_name || !customer_phone) {
@@ -38,8 +38,16 @@ export const createOrder = async (req: Request, res: Response, next: NextFunctio
         throw new BadRequestError('Order must contain at least one item');
     }
 
+    // Validate items product_id
+    for (const item of items) {
+        if (!isValidId(item.product_id)) {
+            throw new BadRequestError(`Invalid product ID: ${item.product_id}`);
+        }
+        item.product_id = Number(item.product_id);
+    }
+
     const order = await orderService.createPublicOrder({
-        store_id,
+        store_id: Number(store_id),
         customer_name,
         customer_phone,
         pickup_time,

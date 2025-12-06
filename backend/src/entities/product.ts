@@ -1,16 +1,16 @@
 export interface Product {
-  id: string;
-  store_id: string;
+  id: number;
+  store_id: number;
   name: string;
   price: number;
   stock_quantity: number;
   image_url: string | null;
   is_active: boolean;
-  created_by: string | null;
+  created_by: number | null;
   created_at: Date;
-  updated_by: string | null;
+  updated_by: number | null;
   updated_at: Date;
-  deleted_by: string | null;
+  deleted_by: number | null;
   deleted_at: Date | null;
 }
 

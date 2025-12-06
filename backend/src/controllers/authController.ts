@@ -49,7 +49,7 @@ export const refreshToken = async (req: Request, res: Response, next: NextFuncti
 export const deleteAccount = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Assuming user ID is attached to req.user by auth middleware
-    const userId = (req as any).user?.userId; 
+    const userId = (req as any).user?.userId as number; 
     await authService.softDeleteAccount(userId);
     return sendResponse(res, responseTemplates.ok('Account deleted successfully'));
   } catch (error) {
@@ -59,7 +59,7 @@ export const deleteAccount = async (req: Request, res: Response, next: NextFunct
 
 export const changePassword = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = (req as any).user?.userId;
+    const userId = (req as any).user?.userId as number;
     const { newPassword } = req.body;
     if (!newPassword) {
       return sendResponse(res, responseTemplates.badRequest('New password is required'));

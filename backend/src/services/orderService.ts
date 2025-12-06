@@ -94,7 +94,7 @@ class OrderService {
   }
 
   // For Seller (Phase 2)
-  async getStoreOrders(userId: string, storeId: string) {
+  async getStoreOrders(userId: number, storeId: number) {
       // Verify ownership
       const store = await storeRepository.findStoreById(storeId);
       if (!store) throw new NotFoundError('Store not found');
