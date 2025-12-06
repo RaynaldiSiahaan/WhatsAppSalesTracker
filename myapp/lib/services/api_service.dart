@@ -7,7 +7,7 @@ import '../models/store.dart';
 import '../utils/constants.dart';
 
 class ApiService {
-  static String get baseUrl => dotenv.env['API_BASE_URL'] ?? 'http://103.31.204.108:3000';
+  static String get baseUrl => dotenv.env['API_BASE_URL'] ?? 'https://api.yangpentingbisa.web.id/';
   
   // Get stored auth token
   Future<String?> _getToken() async {
@@ -60,6 +60,9 @@ class ApiService {
 
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
+          final url = '$baseUrl${AppConstants.authLoginEndpoint}';
+          print('🔥 LOGIN URL: $url');
+
       final response = await http.post(
         Uri.parse('$baseUrl${AppConstants.authLoginEndpoint}'),
         headers: {'Content-Type': 'application/json'},

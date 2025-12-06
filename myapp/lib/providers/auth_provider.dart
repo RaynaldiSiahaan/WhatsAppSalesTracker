@@ -57,6 +57,11 @@ class AuthProvider with ChangeNotifier {
       
       _isAuthenticated = true;
       _userEmail = email;
+      try {
+  await _apiService.getMyStores();  // This already saves store_id internally
+} catch (e) {
+  print('Failed to fetch stores: $e');
+}
       _isLoading = false;
       notifyListeners();
       

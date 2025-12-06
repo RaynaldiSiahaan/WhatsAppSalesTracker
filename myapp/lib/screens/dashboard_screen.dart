@@ -15,38 +15,67 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   double _dailyRevenue = 0.0;
   double _weeklyRevenue = 0.0;
-
+  String? _selectedProductId;  // ADD THIS
+  List<FlSpot> _salesData = [];  // ADD THIS
   @override
   void initState() {
     super.initState();
     _loadRevenue();
+    _loadSalesData();
   }
 
   Future<void> _loadRevenue() async {
-    final provider = Provider.of<ProductProvider>(context, listen: false);
-    
-    final now = DateTime.now();
-    final todayStart = DateTime(now.year, now.month, now.day);
-    final todayEnd = DateTime(now.year, now.month, now.day, 23, 59, 59);
-    
-    final weekStart = now.subtract(Duration(days: now.weekday - 1));
-    final weekStartDate = DateTime(weekStart.year, weekStart.month, weekStart.day);
+  final provider = Provider.of<ProductProvider>(context, listen: false);
+  
+  final now = DateTime.now();
+  final todayStart = DateTime(now.year, now.month, now.day);
+  final todayEnd = DateTime(now.year, now.month, now.day, 23, 59, 59);
+  
+  final weekStart = now.subtract(Duration(days: now.weekday - 1));
+  final weekStartDate = DateTime(weekStart.year, weekStart.month, weekStart.day);
 
-    final daily = await provider.getRevenue(
-      startDate: todayStart,
-      endDate: todayEnd,
-    );
-    
-    final weekly = await provider.getRevenue(
-      startDate: weekStartDate,
-      endDate: todayEnd,
-    );
-
-    setState(() {
-      _dailyRevenue = daily;
-      _weeklyRevenue = weekly;
-    });
+  // Load sales filtered by product
+  await provider.loadSales(startDate: todayStart, endDate: todayEnd);
+  final todaySales = _selectedProductId == null 
+      ? provider.sales 
+      : provider.sales.where((s) => s.productId == _selectedProductId).toList();
+  
+  await provider.loadSales(startDate: weekStartDate, endDate: todayEnd);
+  final weekSales = _selectedProductId == null
+      ? provider.sales
+      : provider.sales.where((s) => s.productId == _selectedProductId).toList();
+  
+  setState(() {
+    _dailyRevenue = todaySales.fold(0.0, (sum, sale) => sum + sale.totalAmount);
+    _weeklyRevenue = weekSales.fold(0.0, (sum, sale) => sum + sale.totalAmount);
+  });
+}
+Future<void> _loadSalesData() async {
+  final provider = Provider.of<ProductProvider>(context, listen: false);
+  
+  final now = DateTime.now();
+  final weekStart = now.subtract(const Duration(days: 7));
+  
+  await provider.loadSales(startDate: weekStart, endDate: now);
+  
+  // Filter by product if selected
+  final sales = _selectedProductId == null
+      ? provider.sales
+      : provider.sales.where((s) => s.productId == _selectedProductId).toList();
+  
+  // Group by day
+  Map<int, double> dailyTotals = {};
+  for (var sale in sales) {
+    final dayIndex = sale.createdAt.difference(weekStart).inDays;
+    dailyTotals[dayIndex] = (dailyTotals[dayIndex] ?? 0) + sale.quantity.toDouble();
   }
+  
+  setState(() {
+    _salesData = List.generate(7, (i) {
+      return FlSpot(i.toDouble(), dailyTotals[i] ?? 0);
+    });
+  });
+}
 
   @override
   Widget build(BuildContext context) {
@@ -77,9 +106,50 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Consumer<ProductProvider>(
+    builder: (context, provider, _) {
+      return Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(AppConstants.paddingMedium),
+          child: DropdownButtonFormField<String?>(
+            decoration: const InputDecoration(
+              labelText: 'Filter Produk',
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            ),
+            value: _selectedProductId,
+            items: [
+              const DropdownMenuItem(
+                value: null,
+                child: Text('Semua Produk'),
+              ),
+              ...provider.products.map((product) {
+                return DropdownMenuItem(
+                  value: product.id,
+                  child: Text(product.name),
+                );
+              }),
+            ],
+            onChanged: (value) {
+              setState(() {
+                _selectedProductId = value;
+              });
+              _loadRevenue();
+              _loadSalesData();
+            },
+          ),
+        ),
+      );
+    },
+  ),
+  const SizedBox(height: AppConstants.paddingMedium),
               // Revenue Cards
               Row(
-                children: [
+                children: [   
                   Expanded(
                     child: _RevenueCard(
                       title: 'Hari Ini',
@@ -111,7 +181,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
               const SizedBox(height: AppConstants.paddingMedium),
-              const _SalesChart(),
+              _SalesChart(salesData: _salesData),
               const SizedBox(height: AppConstants.paddingLarge),
 
               // ML Forecasting Section (Placeholder)
@@ -205,7 +275,9 @@ class _RevenueCard extends StatelessWidget {
 }
 
 class _SalesChart extends StatelessWidget {
-  const _SalesChart();
+    final List<FlSpot> salesData;
+
+  const _SalesChart({required this.salesData});
 
   @override
   Widget build(BuildContext context) {
@@ -263,18 +335,11 @@ class _SalesChart extends StatelessWidget {
     );
   }
 
-  List<FlSpot> _generateSampleData() {
-    // TODO: Replace with actual sales data
-    return [
-      const FlSpot(0, 1),
-      const FlSpot(1, 2),
-      const FlSpot(2, 1.5),
-      const FlSpot(3, 3),
-      const FlSpot(4, 2.5),
-      const FlSpot(5, 4),
-      const FlSpot(6, 3.5),
-    ];
-  }
+List<FlSpot> _generateSampleData() {
+  return salesData.isEmpty 
+      ? [const FlSpot(0, 0), const FlSpot(6, 0)]
+      : salesData;
+}
 }
 
 class _ForecastingCard extends StatelessWidget {

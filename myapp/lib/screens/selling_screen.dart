@@ -86,13 +86,13 @@ class _ProductSellingCardState extends State<_ProductSellingCard> {
         borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(AppConstants.paddingMedium),
+        padding: const EdgeInsets.all(12),
         child: Row(
           children: [
             // Product Image
             Container(
-              width: 80,
-              height: 80,
+              width: 45,
+              height: 45,
               decoration: BoxDecoration(
                 color: Colors.grey[200],
                 borderRadius: BorderRadius.circular(AppConstants.radiusSmall),
@@ -251,6 +251,7 @@ class _ProductSellingCardState extends State<_ProductSellingCard> {
         widget.product.price,
         widget.product.stockQuantity - _selectedQuantity,
       );
+      await Clipboard.setData(ClipboardData(text: caption));
 
       if (!context.mounted) return;
       Navigator.pop(context); // Close loading
