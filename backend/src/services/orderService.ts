@@ -40,7 +40,7 @@ class OrderService {
             throw new BadRequestError(`Insufficient stock or invalid product for ID: ${item.product_id}`);
         }
 
-        if (product.store_id !== data.store_id) {
+        if (product.store_id != data.store_id) {
              throw new BadRequestError(`Product ${item.product_id} does not belong to this store`);
         }
 

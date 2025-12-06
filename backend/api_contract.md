@@ -366,6 +366,30 @@ curl -X DELETE http://localhost:3000/api/products/50 \
 }
 ```
 
+#### Upload Image
+*   **Endpoint:** `POST /api/upload`
+*   **Deskripsi:** Mengunggah gambar produk.
+
+**cURL:**
+```bash
+curl -X POST http://localhost:3000/api/upload \
+-H "Authorization: Bearer <ACCESS_TOKEN>" \
+-H "Content-Type: multipart/form-data" \
+-F "image=@/path/to/image.jpg"
+```
+
+**Response (200 OK):**
+```json
+{
+  "status_code": 200,
+  "success": true,
+  "message": "Image uploaded successfully",
+  "data": {
+    "url": "/uploads/1700000000000-random.jpg"
+  }
+}
+```
+
 ### 4.5. Public Access (Buyer)
 
 #### Get Catalog

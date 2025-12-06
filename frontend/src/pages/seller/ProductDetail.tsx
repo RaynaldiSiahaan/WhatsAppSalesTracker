@@ -19,7 +19,7 @@ const ProductDetail = () => {
     }
   });
 
-  const currentStore = stores?.find((s) => s.id === Number(storeId));
+  const currentStore = stores?.find((s) => String(s.id) === storeId);
 
   // 2. Get Catalog to find the product
   const { data: catalogData, isLoading } = useQuery({

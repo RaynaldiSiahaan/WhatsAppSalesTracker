@@ -3,7 +3,6 @@ import { useAuthStore } from '@/store/authStore';
 
 // Access environment variable
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
-
 export const api = axios.create({
   baseURL: BASE_URL,
   headers: {
@@ -14,10 +13,13 @@ export const api = axios.create({
 // Helper to build full image URL
 export const getImageUrl = (path: string) => {
   if (!path) return '';
-  if (path.startsWith('http')) return path;
-  // Remove leading slash if present to avoid double slashes
-  const cleanPath = path.startsWith('/') ? path.substring(1) : path;
-  return `${BASE_URL}/${cleanPath}`;
+  if (path.startsWith('http')) return path; // Already a full URL
+
+  // Ensure BASE_URL and path are handled correctly for concatenation
+  const cleanedBaseUrl = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
+  const cleanedPath = path.startsWith('/') ? path.substring(1) : path;
+
+  return `${cleanedBaseUrl}/${cleanedPath}`;
 };
 
 // Interceptor to add Token to requests
@@ -74,6 +76,18 @@ api.interceptors.response.use(
           logout();
       }
     }
+
+    // Standardize error message for frontend consumption
+    if (error.response && error.response.data) {
+        // Backend standard error response: { status_code, success: false, message, error: "Detail" }
+        const apiError = error.response.data;
+        // Attach a friendly message to the error object for UI to use
+        // We prefer the 'message' field if it's intended for display, or 'error' if it's a detail.
+        // Typically backend sends "message" as human readable status and "error" as detail.
+        // Let's try to find the most useful one.
+        error.message = apiError.message || apiError.error || error.message;
+    }
+
     return Promise.reject(error);
   }
 );

@@ -20,7 +20,7 @@ const StoreManager = () => {
     }
   });
   
-  const currentStore = stores?.find((s) => s.id === Number(storeId));
+  const currentStore = stores?.find((s) => String(s.id) === storeId);
 
   // Fetch Products for this store
   // NOTE: We need a specific endpoint for seller to get products. 
