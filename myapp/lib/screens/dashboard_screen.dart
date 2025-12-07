@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../providers/product_provider.dart';
 import '../services/ml_service.dart';
+import '../services/api_service.dart';
 import '../utils/constants.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -14,6 +15,14 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  final ApiService _apiService = ApiService();
+
+  // API Stats
+  DashboardStats? _apiStats;
+  bool _apiStatsLoading = false;
+  String? _apiStatsError;
+
+  // Local Stats
   double _dailyRevenue = 0.0;
   double _weeklyRevenue = 0.0;
   String? _selectedProductId;
@@ -28,9 +37,45 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _loadAllData() async {
     setState(() => _isLoading = true);
-    await _loadRevenue();
-    await _loadSalesData();
+    await Future.wait([
+      _loadApiStats(),
+      _loadRevenue(),
+      _loadSalesData(),
+    ]);
     setState(() => _isLoading = false);
+  }
+
+  Future<void> _loadApiStats() async {
+    setState(() {
+      _apiStatsLoading = true;
+      _apiStatsError = null;
+    });
+
+    try {
+      final provider = Provider.of<ProductProvider>(context, listen: false);
+      final now = DateTime.now();
+      final weekStart = now.subtract(Duration(days: now.weekday - 1));
+
+      final stats = await _apiService.getDashboardStats(
+        storeId: provider.storeId,
+        startDate: weekStart,
+        endDate: now,
+      );
+
+      if (mounted) {
+        setState(() {
+          _apiStats = stats;
+          _apiStatsLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _apiStatsError = e.toString();
+          _apiStatsLoading = false;
+        });
+      }
+    }
   }
 
   Future<void> _loadRevenue() async {
@@ -93,6 +138,140 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  Widget _buildApiStatsCard(NumberFormat formatter) {
+    if (_apiStatsLoading) {
+      return Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+        ),
+        child: const Padding(
+          padding: EdgeInsets.all(AppConstants.paddingLarge),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      );
+    }
+
+    if (_apiStatsError != null) {
+      return Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(AppConstants.paddingMedium),
+          child: Row(
+            children: [
+              Icon(Icons.cloud_off, color: Colors.orange[700], size: 24),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Statistik dari server tidak tersedia. Menampilkan data lokal.',
+                  style: TextStyle(color: Colors.orange[700], fontSize: 12),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_apiStats == null) return const SizedBox.shrink();
+
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(AppConstants.paddingMedium),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppConstants.primaryBlue.withOpacity(0.1),
+              AppConstants.lightBlue.withOpacity(0.1),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.cloud_done, color: AppConstants.primaryBlue, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  'Statistik Server',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: AppConstants.primaryBlue,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: _StatItem(
+                    icon: Icons.store,
+                    label: 'Toko',
+                    value: _apiStats!.totalStores.toString(),
+                    color: AppConstants.primaryBlue,
+                  ),
+                ),
+                Expanded(
+                  child: _StatItem(
+                    icon: Icons.inventory_2,
+                    label: 'Produk',
+                    value: _apiStats!.totalProducts.toString(),
+                    color: AppConstants.accentBlue,
+                  ),
+                ),
+                Expanded(
+                  child: _StatItem(
+                    icon: Icons.receipt_long,
+                    label: 'Pesanan',
+                    value: _apiStats!.totalOrdersReceived.toString(),
+                    color: AppConstants.successGreen,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppConstants.successGreen.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(AppConstants.radiusSmall),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.payments, color: AppConstants.successGreen, size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Total Revenue: ${formatter.format(_apiStats!.totalRevenue)}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppConstants.successGreen,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final formatter = NumberFormat.currency(
@@ -126,6 +305,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // API Stats Summary Card
+                    _buildApiStatsCard(formatter),
+                    const SizedBox(height: AppConstants.paddingMedium),
+
                     // Product Filter
                     Consumer<ProductProvider>(
                       builder: (context, provider, _) {
@@ -929,6 +1112,52 @@ class _RecentSalesList extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _StatItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color color;
+
+  const _StatItem({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: color, size: 20),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            color: AppConstants.textGrey,
+          ),
+        ),
+      ],
     );
   }
 }

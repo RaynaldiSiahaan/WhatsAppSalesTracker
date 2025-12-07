@@ -39,13 +39,16 @@ class AppConstants {
   static const String storesEndpoint = '/api/stores';
   static const String myStoresEndpoint = '/api/stores/my';
   static const String productsEndpoint = '/api/stores';
-  
+  static const String publicCatalogEndpoint = '/api/public/catalog';
+  static const String dashboardStatsEndpoint = '/api/seller/dashboard/stats';
+
   // Storage Keys
   static const String keyAccessToken = 'access_token';
   static const String keyRefreshToken = 'refresh_token';
   static const String keyUserId = 'user_id';
   static const String keyUserEmail = 'user_email';
   static const String keyStoreId = 'store_id';
+  static const String keyStoreSlug = 'store_slug';
   
   // Image
   static const int imageQuality = 70;

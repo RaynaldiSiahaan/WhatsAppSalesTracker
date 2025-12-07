@@ -95,9 +95,58 @@ class ApiService {
     }
   }
 
+  /// Logout - clear ALL user session data to prevent data leakage between users
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
+    // CRITICAL: Clear ALL user-related data on logout to prevent data mixing
+    await prefs.remove(AppConstants.keyAccessToken);
+    await prefs.remove(AppConstants.keyRefreshToken);
+    await prefs.remove(AppConstants.keyUserId);
+    await prefs.remove(AppConstants.keyUserEmail);
+    await prefs.remove(AppConstants.keyStoreId);
+    await prefs.remove(AppConstants.keyStoreSlug);
+  }
+
+  /// Check if token is still valid, refresh if needed
+  Future<bool> refreshTokenIfNeeded() async {
+    final prefs = await SharedPreferences.getInstance();
+    final refreshToken = prefs.getString(AppConstants.keyRefreshToken);
+
+    if (refreshToken == null) return false;
+
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl${AppConstants.authRefreshEndpoint}'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'refreshToken': refreshToken}),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200 && data['success']) {
+        await _saveTokens(
+          data['data']['accessToken'],
+          data['data']['refreshToken'],
+        );
+        return true;
+      }
+      return false;
+    } catch (e) {
+      print('⚠️ Token refresh failed: $e');
+      return false;
+    }
+  }
+
+  /// Get current user ID from storage
+  Future<String?> getCurrentUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(AppConstants.keyUserId);
+  }
+
+  /// Get current store ID from storage
+  Future<String?> getCurrentStoreId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(AppConstants.keyStoreId);
   }
 
   // ========== STORES ==========
@@ -141,17 +190,19 @@ class ApiService {
       );
 
       final data = jsonDecode(response.body);
-      
+
       if (response.statusCode == 200 && data['success']) {
         final List<dynamic> storesJson = data['data'];
         final stores = storesJson.map((json) => Store.fromJson(json)).toList();
-        
-        // Save first store ID if exists
+
+        // Save first store ID and slug if exists
         if (stores.isNotEmpty) {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString(AppConstants.keyStoreId, stores.first.id);
+          await prefs.setString(AppConstants.keyStoreSlug, stores.first.slug);
+          print('Saved store_id: ${stores.first.id}, slug: ${stores.first.slug}');
         }
-        
+
         return stores;
       } else {
         throw Exception(data['error'] ?? 'Gagal mengambil data toko');
@@ -221,12 +272,116 @@ class ApiService {
       );
 
       final data = jsonDecode(response.body);
-      
+
       if (response.statusCode != 200 || !data['success']) {
         throw Exception(data['error'] ?? 'Gagal menghapus produk');
       }
     } catch (e) {
       throw Exception('Error menghapus produk: $e');
     }
+  }
+
+  // ========== PUBLIC CATALOG ==========
+
+  /// Get public catalog (store info + products) using store slug
+  /// This is the only way to fetch products from the API
+  Future<Map<String, dynamic>> getPublicCatalog(String slug) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl${AppConstants.publicCatalogEndpoint}/$slug'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200 && data['success']) {
+        return data['data'];
+      } else {
+        throw Exception(data['error'] ?? 'Gagal mengambil katalog');
+      }
+    } catch (e) {
+      throw Exception('Error mengambil katalog: $e');
+    }
+  }
+
+  /// Get products from public catalog
+  Future<List<Product>> getProductsFromCatalog(String slug) async {
+    try {
+      final catalogData = await getPublicCatalog(slug);
+      final List<dynamic> productsJson = catalogData['products'] ?? [];
+
+      // Get store_id from the catalog response
+      final storeId = catalogData['store']?['id']?.toString() ?? '';
+
+      return productsJson.map((json) {
+        // Add store_id to product json if not present
+        json['store_id'] = json['store_id'] ?? storeId;
+        return Product.fromJson(json);
+      }).toList();
+    } catch (e) {
+      throw Exception('Error mengambil produk dari katalog: $e');
+    }
+  }
+
+  // ========== DASHBOARD ==========
+
+  /// Get dashboard statistics from API
+  /// Supports filtering by storeId, startDate, and endDate
+  Future<DashboardStats> getDashboardStats({
+    String? storeId,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    try {
+      final headers = await _getHeaders();
+
+      // Build query parameters
+      final queryParams = <String, String>{};
+      if (storeId != null) queryParams['storeId'] = storeId;
+      if (startDate != null) {
+        queryParams['startDate'] = startDate.toIso8601String().split('T')[0];
+      }
+      if (endDate != null) {
+        queryParams['endDate'] = endDate.toIso8601String().split('T')[0];
+      }
+
+      final uri = Uri.parse('$baseUrl${AppConstants.dashboardStatsEndpoint}')
+          .replace(queryParameters: queryParams.isNotEmpty ? queryParams : null);
+
+      final response = await http.get(uri, headers: headers);
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200 && data['success']) {
+        return DashboardStats.fromJson(data['data']);
+      } else {
+        throw Exception(data['error'] ?? 'Gagal mengambil statistik dashboard');
+      }
+    } catch (e) {
+      throw Exception('Error mengambil statistik dashboard: $e');
+    }
+  }
+}
+
+/// Dashboard statistics model
+class DashboardStats {
+  final int totalStores;
+  final int totalProducts;
+  final int totalOrdersReceived;
+  final double totalRevenue;
+
+  DashboardStats({
+    required this.totalStores,
+    required this.totalProducts,
+    required this.totalOrdersReceived,
+    required this.totalRevenue,
+  });
+
+  factory DashboardStats.fromJson(Map<String, dynamic> json) {
+    return DashboardStats(
+      totalStores: json['total_stores'] ?? 0,
+      totalProducts: json['total_products'] ?? 0,
+      totalOrdersReceived: json['total_orders_received'] ?? 0,
+      totalRevenue: double.tryParse(json['total_revenue'].toString()) ?? 0.0,
+    );
   }
 }

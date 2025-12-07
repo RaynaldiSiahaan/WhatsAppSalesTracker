@@ -29,9 +29,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   @override
   void initState() {
     super.initState();
-    // Initialize product provider
+    // Initialize product provider with fresh data for current user
+    // Using reinitializeForNewUser to ensure we load the correct store's products
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<ProductProvider>(context, listen: false).initialize();
+      Provider.of<ProductProvider>(context, listen: false).reinitializeForNewUser();
     });
   }
 

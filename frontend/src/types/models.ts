@@ -65,6 +65,12 @@ export interface DashboardStats {
   total_revenue: number;
 }
 
+export interface DashboardFilter {
+  storeId?: number;
+  startDate?: string;
+  endDate?: string;
+}
+
 export interface ApiResponse<T> {
   status_code: number;
   success: boolean;

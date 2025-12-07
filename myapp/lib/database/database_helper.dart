@@ -69,7 +69,12 @@ class DatabaseHelper {
     final db = await database;
     final id = product.id ?? DateTime.now().millisecondsSinceEpoch.toString();
     final productWithId = product.copyWith(id: id);
-    await db.insert('products', productWithId.toMap());
+    // Use REPLACE to update if product already exists (important for API sync)
+    await db.insert(
+      'products',
+      productWithId.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
     return id;
   }
 

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { storeService } from '@/services/storeService';
 import { dashboardService } from '@/services/dashboardService';
@@ -5,10 +6,16 @@ import { Link } from 'react-router-dom';
 import { Plus, Store as StoreIcon, TrendingUp, ShoppingBag } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { DashboardFilter } from '@/types/models';
 
 const Dashboard = () => {
   const queryClient = useQueryClient();
   const { t } = useLanguage();
+  const [filters, setFilters] = useState<DashboardFilter>({
+    storeId: undefined,
+    startDate: '',
+    endDate: ''
+  });
   
   // Fetch Stores
   const { data: stores, isLoading: isLoadingStores } = useQuery({
@@ -21,8 +28,15 @@ const Dashboard = () => {
 
   // Fetch Dashboard Stats
   const { data: statsResponse, isLoading: isLoadingStats } = useQuery({
-    queryKey: ['dashboard-stats'],
-    queryFn: () => dashboardService.getStats()
+    queryKey: ['dashboard-stats', filters],
+    queryFn: () => {
+      const queryFilters = {
+        storeId: filters.storeId,
+        startDate: filters.startDate || undefined,
+        endDate: filters.endDate || undefined
+      };
+      return dashboardService.getStats(queryFilters);
+    }
   });
 
   const stats = statsResponse?.data;
@@ -51,6 +65,43 @@ const Dashboard = () => {
   return (
     <div>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">{t.dashboardTitle}</h1>
+
+      {/* Filter Controls */}
+      <div className="flex flex-wrap gap-4 mb-6 p-4 bg-white rounded-xl shadow-sm border border-gray-100">
+        <div className="flex-1 min-w-[200px]">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Filter Store</label>
+          <select 
+              className="block w-full rounded-lg border-gray-300 shadow-sm border p-2 text-sm focus:ring-blue-500 focus:border-blue-500"
+              onChange={(e) => setFilters({...filters, storeId: Number(e.target.value) || undefined})}
+              value={filters.storeId || ''}
+          >
+              <option value="">All Stores</option>
+              {stores?.map(store => (
+                  <option key={store.id} value={store.id}>{store.name}</option>
+              ))}
+          </select>
+        </div>
+        
+        <div className="flex-1 min-w-[150px]">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+          <input 
+              type="date" 
+              className="block w-full rounded-lg border-gray-300 shadow-sm border p-2 text-sm focus:ring-blue-500 focus:border-blue-500"
+              value={filters.startDate || ''} 
+              onChange={(e) => setFilters({...filters, startDate: e.target.value})} 
+          />
+        </div>
+
+        <div className="flex-1 min-w-[150px]">
+          <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+          <input 
+              type="date" 
+              className="block w-full rounded-lg border-gray-300 shadow-sm border p-2 text-sm focus:ring-blue-500 focus:border-blue-500"
+              value={filters.endDate || ''} 
+              onChange={(e) => setFilters({...filters, endDate: e.target.value})} 
+          />
+        </div>
+      </div>
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
