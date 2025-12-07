@@ -106,40 +106,40 @@ export class OrderRepository {
       return rows;
   }
 
-  async getDashboardStats(userId: number, storeId?: number, startDate?: string, endDate?: string): Promise<{ total_sales_gross: number, orders_count: { pending: number, completed: number, total: number } }> {
+  async getDashboardStats(userId: number, storeId?: number, startDate?: string, endDate?: string): Promise<{ total_stores: number, total_products: number, total_orders_received: number, total_revenue: number }> {
     const params: any[] = [userId];
-    let queryConstraints = 'WHERE s.user_id = $1';
     let paramIndex = 2;
 
+    let storeFilterStores = "";
+    let storeFilterProducts = "";
+    let storeFilterOrders = "";
+    
     if (storeId) {
-      queryConstraints += ` AND o.store_id = $${paramIndex}`;
-      params.push(storeId);
-      paramIndex++;
+        storeFilterStores = `AND id = $${paramIndex}`;
+        storeFilterProducts = `AND s.id = $${paramIndex}`;
+        storeFilterOrders = `AND s.id = $${paramIndex}`;
+        params.push(storeId);
+        paramIndex++;
     }
 
+    let dateFilter = "";
     if (startDate) {
-      queryConstraints += ` AND o.created_at >= $${paramIndex}`;
-      params.push(startDate);
-      paramIndex++;
+        dateFilter += ` AND o.created_at >= $${paramIndex}::timestamptz`;
+        params.push(startDate);
+        paramIndex++;
     }
-
     if (endDate) {
-      // Assuming inclusive end date, we might want to go up to end of that day.
-      // But adhering to exact string passed for now.
-      queryConstraints += ` AND o.created_at <= $${paramIndex}`;
-      params.push(endDate);
-      paramIndex++;
+        dateFilter += ` AND o.created_at::date <= $${paramIndex}::date`;
+        params.push(endDate);
+        paramIndex++;
     }
 
     const text = `
       SELECT 
-          COALESCE(SUM(CASE WHEN o.status = 'COMPLETED' THEN o.total_amount_gross ELSE 0 END), 0) as total_sales_gross,
-          COUNT(CASE WHEN o.status IN ('RECEIVED', 'PREPARING', 'READY_FOR_PICKUP') THEN 1 END) as pending_count,
-          COUNT(CASE WHEN o.status = 'COMPLETED' THEN 1 END) as completed_count,
-          COUNT(o.id) as total_count
-      FROM orders o
-      JOIN stores s ON o.store_id = s.id
-      ${queryConstraints}
+        (SELECT COUNT(*) FROM stores WHERE user_id = $1 ${storeFilterStores}) as total_stores,
+        (SELECT COUNT(*) FROM products p JOIN stores s ON p.store_id = s.id WHERE s.user_id = $1 AND p.is_active = TRUE ${storeFilterProducts}) as total_products,
+        (SELECT COUNT(*) FROM orders o JOIN stores s ON o.store_id = s.id WHERE s.user_id = $1 ${storeFilterOrders} ${dateFilter}) as total_orders_received,
+        (SELECT COALESCE(SUM(total_amount_gross), 0) FROM orders o JOIN stores s ON o.store_id = s.id WHERE s.user_id = $1 AND o.status = 'COMPLETED' ${storeFilterOrders} ${dateFilter}) as total_revenue
     `;
     
     const rows = await this.query<any>(text, params);
