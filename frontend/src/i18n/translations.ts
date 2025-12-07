@@ -121,6 +121,12 @@ export const translations = {
     aiChatTitle: "Discuss Ideas with AI",
     aiChatDescription: "Chat with our AI assistant to brainstorm ideas, get suggestions, or troubleshoot business challenges.",
     aiChatPlaceholder: "Type your idea or question here...",
+    quickAction1: "How to promote on Instagram?",
+    quickAction2: "Tips for selling well",
+    quickAction3: "MSME product ideas",
+    quickAction4: "Product pricing strategy",
+    quickAction5: "How to create engaging captions",
+    quickAction6: "Product photography tips",
   },
   id: {
     // Auth
@@ -244,5 +250,11 @@ export const translations = {
     aiChatTitle: "Diskusi Ide dengan AI",
     aiChatDescription: "Ngobrol dengan asisten AI kami untuk mencari ide, mendapatkan saran, atau mengatasi tantangan bisnis.",
     aiChatPlaceholder: "Ketik ide atau pertanyaan Anda di sini...",
+    quickAction1: "Cara promosi di Instagram?",
+    quickAction2: "Tips jualan laris",
+    quickAction3: "Ide produk UMKM",
+    quickAction4: "Strategi harga produk",
+    quickAction5: "Cara buat caption menarik",
+    quickAction6: "Tips foto produk",
   }
 };
