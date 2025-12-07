@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Outlet, Navigate, Link } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
-import { LogOut, LayoutDashboard, Menu, X } from 'lucide-react';
+import { LogOut, LayoutDashboard, Menu, X, MessageSquare } from 'lucide-react'; // Added MessageSquare
 import brandLogo from '@/assets/brand_logo.png';
 
 const SellerLayout = () => {
@@ -57,6 +57,15 @@ const SellerLayout = () => {
           >
             <LayoutDashboard className="w-5 h-5 mr-3" />
             Dashboard
+          </Link>
+          {/* New AI Chat Link */}
+          <Link
+            to="/ai-chat"
+            className="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+            onClick={() => setIsSidebarOpen(false)}
+          >
+            <MessageSquare className="w-5 h-5 mr-3" />
+            Diskusi Ide dengan AI
           </Link>
           <button
             onClick={() => {
