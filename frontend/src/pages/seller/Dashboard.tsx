@@ -112,7 +112,7 @@ const Dashboard = () => {
             </div>
             <div>
               <p className="text-sm text-gray-500 font-medium">{t.totalSales}</p>
-              <p className="text-2xl font-bold text-gray-900">Rp {stats?.total_sales_gross.toLocaleString() || 0}</p>
+              <p className="text-2xl font-bold text-gray-900">Rp {stats?.total_revenue.toLocaleString() || 0}</p>
             </div>
           </div>
         </div>
@@ -124,7 +124,7 @@ const Dashboard = () => {
             <div>
               <p className="text-sm text-gray-500 font-medium">{t.totalOrders}</p>
               <p className="text-2xl font-bold text-gray-900">
-                  {stats?.orders_count.total || 0} <span className="text-sm font-normal text-gray-500">({stats?.orders_count.pending || 0} Pending)</span>
+                  {stats?.total_orders_received || 0}
               </p>
             </div>
           </div>
@@ -136,7 +136,7 @@ const Dashboard = () => {
             </div>
             <div>
               <p className="text-sm text-gray-500 font-medium">{t.storeCount}</p>
-              <p className="text-2xl font-bold text-gray-900">{stores?.length || 0}</p>
+              <p className="text-2xl font-bold text-gray-900">{stats?.total_stores || 0}</p>
             </div>
           </div>
         </div>

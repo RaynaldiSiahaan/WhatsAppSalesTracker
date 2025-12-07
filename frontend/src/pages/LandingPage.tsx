@@ -54,7 +54,7 @@ const LandingPage = () => {
               </div>
               <h3 className="text-xl font-bold mb-3">2. Share Link</h3>
               <p className="text-gray-600 leading-relaxed">
-                Dapatkan link unik toko Anda (contoh: toko.com/s/kopi-enak). Bagikan ke WhatsApp atau Sosmed.
+                Dapatkan link unik toko Anda (contoh: www.yangpentingbisa.web.id/s/kopi-enak). Bagikan ke WhatsApp atau Sosmed.
               </p>
             </div>
 

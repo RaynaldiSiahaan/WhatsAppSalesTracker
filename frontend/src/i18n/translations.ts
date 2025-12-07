@@ -96,6 +96,17 @@ export const translations = {
     sendOrder: "Send Order",
     failedToProcessOrder: "Failed to process order. Please try again.",
 
+    // OrderList
+    orders: "Orders",
+    orderId: "Order ID",
+    customer: "Customer",
+    // total: "Total", // Removed duplicate
+    status: "Status",
+    items: "Items",
+    noOrders: "No orders found.",
+    updateStatus: "Update Status",
+    viewOrders: "View Orders",
+
     // OrderSuccess
     orderPlaced: "Order Placed!",
     orderSentSuccessfully: "Your order has been successfully sent to the store.",
@@ -105,6 +116,17 @@ export const translations = {
     // Navigation/Common
     logout: "Logout",
     loading: "Loading...",
+
+    // AI Chat
+    aiChatTitle: "Discuss Ideas with AI",
+    aiChatDescription: "Chat with our AI assistant to brainstorm ideas, get suggestions, or troubleshoot business challenges.",
+    aiChatPlaceholder: "Type your idea or question here...",
+    quickAction1: "How to promote on Instagram?",
+    quickAction2: "Tips for selling well",
+    quickAction3: "MSME product ideas",
+    quickAction4: "Product pricing strategy",
+    quickAction5: "How to create engaging captions",
+    quickAction6: "Product photography tips",
   },
   id: {
     // Auth
@@ -203,6 +225,17 @@ export const translations = {
     sendOrder: "Kirim Pesanan",
     failedToProcessOrder: "Gagal memproses pesanan. Silakan coba lagi.",
 
+    // OrderList
+    orders: "Pesanan",
+    orderId: "ID Pesanan",
+    customer: "Pelanggan",
+    // total: "Total", // Removed duplicate
+    status: "Status",
+    items: "Item",
+    noOrders: "Belum ada pesanan.",
+    updateStatus: "Ubah Status",
+    viewOrders: "Lihat Pesanan",
+
     // OrderSuccess
     orderPlaced: "Pesanan Dibuat!",
     orderSentSuccessfully: "Pesanan Anda telah berhasil dikirim ke toko.",
@@ -212,5 +245,16 @@ export const translations = {
     // Navigation/Common
     logout: "Keluar",
     loading: "Memuat...",
+
+    // AI Chat
+    aiChatTitle: "Diskusi Ide dengan AI",
+    aiChatDescription: "Ngobrol dengan asisten AI kami untuk mencari ide, mendapatkan saran, atau mengatasi tantangan bisnis.",
+    aiChatPlaceholder: "Ketik ide atau pertanyaan Anda di sini...",
+    quickAction1: "Cara promosi di Instagram?",
+    quickAction2: "Tips jualan laris",
+    quickAction3: "Ide produk UMKM",
+    quickAction4: "Strategi harga produk",
+    quickAction5: "Cara buat caption menarik",
+    quickAction6: "Tips foto produk",
   }
 };

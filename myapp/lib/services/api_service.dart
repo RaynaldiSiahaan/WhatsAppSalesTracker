@@ -360,6 +360,11 @@ class ApiService {
       throw Exception('Error mengambil statistik dashboard: $e');
     }
   }
+
+  // ========== ORDERS ==========
+  // NOTE: The API contract does not include a GET /api/seller/orders endpoint yet.
+  // Order management features are temporarily disabled until the backend implements this endpoint.
+  // For now, only dashboard stats (total orders count) is available via /api/seller/dashboard/stats
 }
 
 /// Dashboard statistics model

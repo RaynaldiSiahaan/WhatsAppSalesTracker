@@ -1,5 +1,5 @@
-name: myapp
-description: UMKM Seller App - Share products to WhatsApp Story with AI-generated captions
+name: sedya_rasa
+description: Sedya Rasa - Aplikasi Penjualan UMKM dengan AI
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -10,7 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   http: ^1.1.0
-  onnxruntime: ^1.4.1
+  # tflite_flutter: ^0.10.4  # Temporarily disabled due to compatibility issues
   flutter_dotenv: ^6.0.0
   provider: ^6.0.0
   intl: ^0.20.2
@@ -28,12 +28,21 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.13.1
   
 flutter:
   uses-material-design: true
   assets:
     - .env
-    - lib/models/umkm_forecast.onnx
+    - assets/images/
+    # - lib/models/umkm_forecast.tflite  # TFLite temporarily disabled
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/sedya_rasa_logo.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/images/sedya_rasa_logo.png"
 
 
 

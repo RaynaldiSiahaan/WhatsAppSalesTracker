@@ -14,9 +14,14 @@ class ProfileScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppConstants.backgroundGrey,
       appBar: AppBar(
-        title: const Text('Profil'),
+        title: const Text(
+          'Profil Saya',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: AppConstants.primaryBlue,
         foregroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: false,
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -84,7 +89,7 @@ class ProfileScreen extends StatelessWidget {
                                 );
                               }
                               return const Text(
-                                'Toko UMKM',
+                                'Sedya Rasa',
                                 style: TextStyle(
                                   color: Colors.white70,
                                   fontSize: 14,
@@ -97,6 +102,46 @@ class ProfileScreen extends StatelessWidget {
                     },
                   ),
                 ],
+              ),
+            ),
+            const SizedBox(height: AppConstants.paddingMedium),
+
+            // Stats Cards
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingMedium),
+              child: Consumer<ProductProvider>(
+                builder: (context, productProvider, _) {
+                  return Row(
+                    children: [
+                      Expanded(
+                        child: _StatsCard(
+                          icon: Icons.inventory_2_rounded,
+                          label: 'Produk',
+                          value: productProvider.products.length.toString(),
+                          color: AppConstants.primaryBlue,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _StatsCard(
+                          icon: Icons.star_rounded,
+                          label: 'Rating',
+                          value: '4.8',
+                          color: Colors.amber,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _StatsCard(
+                          icon: Icons.trending_up_rounded,
+                          label: 'Penjualan',
+                          value: '${productProvider.sales.length}',
+                          color: AppConstants.successGreen,
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
             const SizedBox(height: AppConstants.paddingMedium),
@@ -288,9 +333,9 @@ class ProfileScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('UMKM Seller App v1.0.0'),
+            Text('Sedya Rasa v1.0.0'),
             SizedBox(height: 8),
-            Text('Aplikasi untuk membantu penjual UMKM mengelola bisnis dengan AI dan analytics.'),
+            Text('Aplikasi untuk membantu penjual mengelola bisnis kuliner dengan AI dan analytics.'),
             SizedBox(height: 12),
             Text('Fitur:'),
             Text('• Katalog Produk'),
@@ -382,6 +427,67 @@ class ProfileScreen extends StatelessWidget {
         );
       }
     }
+  }
+}
+
+class _StatsCard extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color color;
+
+  const _StatsCard({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: AppConstants.textGrey,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
