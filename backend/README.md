@@ -1,138 +1,182 @@
-# Backend Toko (Seller) - Fase 1
+# TOKO BACKEND - Seller Management API
 
-Dokumen ini berisi dokumentasi teknis dan panduan penggunaan untuk backend aplikasi manajemen toko (fokus: Seller), sesuai dengan Master Technical Specification. Backend ini dirancang untuk aplikasi manajemen toko dan mengimplementasikan fitur autentikasi, manajemen toko, dan manajemen produk.
+![Node.js](https://img.shields.io/badge/Node.js-v20+-green.svg)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)
+![Express.js](https://img.shields.io/badge/Express.js-4.x-lightgrey.svg)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14-blue.svg)
+![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED.svg)
 
-## 1. Stack Teknologi & Standar
+A robust backend for managing online stores, products, and inventory with separate portals for Sellers and Public Customers. This system is designed to scale, featuring a layered architecture, secure authentication, and comprehensive order management.
 
-*   **Bahasa:** TypeScript (Strict Mode)
+For detailed API documentation, including all endpoints and response formats, please refer to the **[API Contract](api_contract.md)**.
+
+## Key Features
+
+### 🛍️ For Sellers
+*   **Authentication:** Secure registration and login with JWT (Access + Refresh Tokens).
+*   **Store Management:** Create and manage multiple stores (currently limited to 1 per user for Phase 1).
+*   **Product Inventory:** Add products, update stock levels, and manage product details.
+*   **Dashboard:** View real-time sales statistics and order statuses.
+*   **Order Management:** Track incoming orders from reception to completion.
+
+### 🛒 For Customers (Public)
+*   **Public Catalog:** Browse store catalogs via unique URL slugs.
+*   **Order Placement:** Seamlessly place orders without requiring an account.
+
+### 🔧 Technical Highlights
+*   **Layered Architecture:** Separation of concerns (Controller -> Service -> Repository) for maintainability and testability.
+*   **BigInt IDs:** Scalable database design using 64-bit integers for IDs.
+*   **AES Encryption:** Database passwords are encrypted at rest using AES-256-CBC.
+*   **Manual Validation:** Robust input validation logic without heavy external dependency reliance.
+
+## Tech Stack
+
 *   **Runtime:** Node.js (v20+)
 *   **Framework:** Express.js
-*   **Database:** PostgreSQL 14 (Driver: `pg`)
-*   **Migration:** `node-pg-migrate` (Raw SQL)
-*   **Auth:** JWT (Access Token 24h + Refresh Token) menggunakan `jsonwebtoken` dan `bcryptjs` untuk hashing password.
-*   **Logging:** Winston (Structured Log) untuk pencatatan log yang terstruktur.
-*   **Environment:** Docker & Docker Compose
-*   **Validation:** Manual checks untuk validasi input yang robust.
-*   **Testing:** Jest dan Supertest untuk unit dan integration testing.
+*   **Language:** TypeScript (Strict Mode)
+*   **Database:** PostgreSQL 14
+*   **ORM/Migration:** `pg` driver & `node-pg-migrate` (Raw SQL for performance)
+*   **Authentication:** JWT (`jsonwebtoken`) & `bcryptjs`
+*   **Containerization:** Docker & Docker Compose
 
-## 2. Struktur Folder Proyek
+## Prerequisites
 
-Proyek ini mengikuti Arsitektur Berlapis (Layered Architecture) secara ketat:
+Ensure you have the following installed on your system:
 
-```
-backend/
-├── src/
-│   ├── config/        # Konfigurasi DB (Pool), env vars, dekripsi AES
-│   ├── controllers/   # Handler Request/Response (Hanya memanggil Service)
-│   ├── middleware/    # Auth (JWT Verify) & Global Error Handler
-│   ├── repositories/  # Akses Database Raw SQL (Query terjadi di sini)
-│   ├── services/      # Logika Bisnis (Validasi, Auth logic, Transaction)
-│   ├── utils/         # Logger, Custom Errors, Crypto helper, Response Interface, Validation
-│   ├── entities/      # Definisi interface untuk objek database (User, Store, Product)
-│   ├── app.ts         # Definisi aplikasi Express (tanpa start listener)
-│   ├── routes.ts      # Definisi Route API
-│   └── server.ts      # Entry point & Graceful Shutdown (start listener)
-├── migrations/        # File SQL Migrasi
-├── tests/             # Unit test & Integration test
-├── .env.example       # Template variabel lingkungan
-├── Dockerfile
-├── docker-compose.yml
-├── jest.config.js     # Konfigurasi Jest
-└── package.json
+*   [Docker Desktop](https://www.docker.com/products/docker-desktop)
+*   [Node.js](https://nodejs.org/) (v20 or higher)
+*   [Go](https://go.dev/) (Required for generating encryption keys)
+*   [PostgreSQL 14](https://www.postgresql.org/) (If running locally without Docker)
+
+## Installation & Setup
+
+### 1. Clone the Repository
+```bash
+git clone <repository-url>
+cd backend
 ```
 
-## 3. Skema Database (PostgreSQL 14)
+### 2. Environment Configuration
+Copy the example environment file:
+```bash
+cp .env.example .env
+```
 
-Semua tabel menggunakan UUID v4. Harga adalah Gross (termasuk pajak).
+### 3. Security Setup (Crucial Step)
+This project uses AES-256 encryption for sensitive database credentials. You **must** generate unique keys.
 
-*   **users**: `id`, `email`, `password_hash`, `is_active` (Soft Delete), `deleted_at`, `created_at`, `updated_at`.
-*   **refresh_tokens**: `token`, `user_id`, `expires_at`, `created_at`.
-*   **stores**: `id`, `user_id`, `name`, `location`, `created_by`, `created_at`, `updated_by`, `updated_at`.
-*   **products**: `id`, `store_id`, `name`, `price`, `stock_quantity`, `image_url`, `is_active` (Soft Delete), `created_by`, `created_at`, `updated_by`, `updated_at`, `deleted_by`, `deleted_at`.
-
-## 4. Cara Menjalankan Aplikasi (Local Development)
-
-### Prasyarat
-*   Node.js v20+
-*   PostgreSQL 14 (Local atau Docker)
-*   Pastikan PostgreSQL Anda berjalan dan dapat diakses dengan kredensial yang benar.
-
-### Langkah-langkah
-
-1.  **Install Dependencies**
+1.  Run the encryption tool:
     ```bash
-    cd backend
-    npm install
+    go run encrypt_pass_tool.go
     ```
+2.  The tool will output `AES_KEY`, `AES_IV`, and an `ENCRYPTED_DB_PASSWORD`.
+3.  Update your `.env` file with these values.
 
-2.  **Konfigurasi Environment**
-    Salin file `.env.example` ke `.env` dan sesuaikan konfigurasinya.
-    ```bash
-    cp .env.example .env
-    ```
-    *   Pastikan `DB_USER`, `DB_PASSWORD`, dan `DB_NAME` sesuai dengan database lokal Anda.
-    *   `DB_PASSWORD` adalah password plaintext untuk migrator dan development.
-    *   `AES_KEY` (32 bytes hex) dan `AES_IV` (16 bytes hex) diperlukan untuk dekripsi `ENCRYPTED_DB_PASSWORD`.
-    *   `JWT_SECRET` adalah secret key untuk JSON Web Token.
+### 4. Database Migration
+Ensure your PostgreSQL database is running and accessible. Then run the migrations to set up the schema:
 
-3.  **Jalankan Migrasi Database**
-    Pastikan database target sudah dibuat (misal: `toko_db`).
-    ```bash
-    npm run migrate:up
-    ```
-    Jika ada masalah koneksi, periksa kembali kredensial database di file `.env` Anda.
+```bash
+npm install
+npm run migrate:up
+```
 
-4.  **Jalankan Server (Development Mode)**
-    ```bash
-    npm run dev
-    ```
-    Server akan berjalan di `http://localhost:3000` (atau port yang didefinisikan di `.env`).
+### 5. Running the Application
 
-## 5. Cara Menjalankan dengan Docker
+**Development Mode (Hot Reload):**
+```bash
+npm run dev
+```
 
-Gunakan Docker Compose untuk menjalankan aplikasi beserta migrasinya dalam container.
+**Docker Mode:**
+```bash
+docker-compose up --build
+```
+*Note: The provided `docker-compose.yml` manages the backend and migrator services. Ensure your database is accessible to the container.*
 
-1.  Pastikan Docker Desktop berjalan.
-2.  Sesuaikan environment variables di `docker-compose.yml` atau buat file `.env` yang sesuai.
-3.  Jalankan perintah:
-    ```bash
-    docker-compose up --build
-    ```
-    Ini akan:
-    *   Membangun image backend.
-    *   Menjalankan container `migrator` untuk melakukan migrasi database.
-    *   Menjalankan container `api` setelah migrasi selesai.
-    *   **Catatan:** Docker Compose yang disediakan saat ini tidak termasuk layanan database PostgreSQL. Anda harus memastikan PostgreSQL berjalan secara eksternal atau menambahkan layanan database ke `docker-compose.yml` jika ingin menjalankannya dalam Docker.
+## Usage Guide: User Journey
 
-## 6. Endpoint API Utama
+Here is a quick guide to interacting with the API.
 
-Semua endpoint utama dilindungi oleh JWT Middleware (kecuali Auth).
+### Scenario 1: Seller Setup 🏪
 
-*   **Auth:**
-    *   `POST /api/auth/register` - Daftar user baru.
-    *   `POST /api/auth/login` - Login (Return Access Token + Refresh Token).
-    *   `POST /api/auth/refresh` - Tukar Refresh Token dengan Access Token baru.
+**1. Register a new Seller account:**
+```bash
+curl -X POST http://localhost:3000/api/auth/register \
+-H "Content-Type: application/json" \
+-d '{ "email": "seller@example.com", "password": "password123" }`
+```
 
-*   **User:**
-    *   `DELETE /api/user/account` - Soft delete akun sendiri (membutuhkan JWT).
-    *   `PATCH /api/user/profile` - Ganti password/email (membutuhkan JWT).
+**2. Login to get Access Token:**
+```bash
+curl -X POST http://localhost:3000/api/auth/login \
+-H "Content-Type: application/json" \
+-d '{ "email": "seller@example.com", "password": "password123" }`
+```
+*Save the `accessToken` from the response for subsequent requests.*
 
-*   **Stores:**
-    *   `POST /api/stores` - Buat toko baru (membutuhkan JWT).
-    *   `GET /api/stores/my` - List toko milik user (membutuhkan JWT).
+**3. Create a Store:**
+```bash
+curl -X POST http://localhost:3000/api/stores \
+-H "Authorization: Bearer <ACCESS_TOKEN>" \
+-H "Content-Type: application/json" \
+-d '{ "name": "My Awesome Store", "location": "Jakarta" }`
+```
 
-*   **Products:**
-    *   `POST /api/stores/:storeId/products` - Tambah produk ke toko (membutuhkan JWT).
-    *   `PATCH /api/products/:productId/stock` - Update stok produk (membutuhkan JWT).
-    *   `DELETE /api/products/:productId` - Soft delete produk (membutuhkan JWT).
+**4. Add a Product:**
+```bash
+curl -X POST http://localhost:3000/api/stores/<STORE_ID>/products \
+-H "Authorization: Bearer <ACCESS_TOKEN>" \
+-H "Content-Type: application/json" \
+-d '{ "name": "Kopi Susu", "price": 18000, "stock_quantity": 50 }`
+```
 
-## 7. Skrip Tersedia
+### Scenario 2: Customer Purchase 🛍️
 
-*   `npm run dev`: Menjalankan server dengan hot-reload (`ts-node-dev`).
-*   `npm run build`: Melakukan build TypeScript ke JavaScript (folder `dist`).
-*   `npm start`: Menjalankan hasil build (`node dist/server.js`).
-*   `npm run migrate:up`: Menjalankan migrasi database ke versi terbaru.
-*   `npm run migrate:down`: Membatalkan migrasi terakhir.
-*   `npm run migrate:create <nama_migrasi>`: Membuat file migrasi baru.
-*   `npm run type-check`: Memeriksa tipe TypeScript tanpa melakukan build.
-*   `npm test`: Menjalankan unit dan integration tests menggunakan Jest.
+**1. View Public Catalog:**
+Access the store using its unique slug (returned during store creation).
+```bash
+curl -X GET http://localhost:3000/api/public/catalog/my-awesome-store
+```
+
+**2. Create an Order:**
+```bash
+curl -X POST http://localhost:3000/api/public/orders \
+-H "Content-Type: application/json" \
+-d '{
+  "store_id": <STORE_ID>,
+  "customer_name": "Budi",
+  "customer_phone": "08123456789",
+  "pickup_time": "2023-12-31T10:00:00Z",
+  "items": [
+    { "product_id": <PRODUCT_ID>, "quantity": 2 }
+  ]
+}'
+```
+
+## Project Structure
+
+The project follows a clean, layered architecture:
+
+```
+src/
+├── config/         # Environment and Database connection setup
+├── controllers/    # Request handlers (input parsing, response formatting)
+├── services/       # Business logic and transaction management
+├── repositories/   # Data access layer (Raw SQL queries)
+├── middleware/     # Authentication and Error handling
+├── utils/          # Helper functions (Logger, Validation, Crypto)
+├── entities/       # TypeScript interfaces for DB models
+├── routes.ts       # API Route definitions
+└── server.ts       # App entry point
+```
+
+## Database Schema (Simplified)
+
+*   **Users:** Stores seller credentials (Soft Delete supported).
+*   **Stores:** Seller's shop details. 1-to-1 relationship with Users initially.
+*   **Products:** Inventory items linked to a Store. Prices are Gross (Tax Included).
+*   **Orders:** Transaction headers containing customer info and total amount.
+*   **OrderItems:** Individual line items for each order.
+
+---
+*Built with ❤️ for UMKM.*

@@ -59,12 +59,10 @@ export interface LoginResponse {
 }
 
 export interface DashboardStats {
-  total_sales_gross: number;
-  orders_count: {
-    pending: number;
-    completed: number;
-    total: number;
-  };
+  total_stores: number;
+  total_products: number;
+  total_orders_received: number;
+  total_revenue: number;
 }
 
 export interface DashboardFilter {

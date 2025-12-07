@@ -17,7 +17,10 @@ export const env = {
     encryptedPassword: process.env.ENCRYPTED_DB_PASSWORD,
     aesKey: process.env.AES_KEY,
     aesTv: process.env.AES_IV,
-  },
-  jwtSecret: process.env.JWT_SECRET || 'default_secret',
-  logLevel: process.env.LOG_LEVEL || 'info',
-};
+    },
+    imageUploadPath: process.env.IMAGE_UPLOAD_PATH || '',
+    jwtSecret: process.env.JWT_SECRET || 'default_secret',
+    corsOrigin: process.env.CORS_ORIGIN || '*',
+    logLevel: process.env.LOG_LEVEL || 'info',
+  };
+  
