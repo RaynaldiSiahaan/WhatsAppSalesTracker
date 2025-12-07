@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { aiService } from '@/services/aiService';
 import { Send, User, Bot, Loader2, Lightbulb, TrendingUp, Camera, Tag, FileText } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -140,7 +141,7 @@ const AIChat: React.FC = () => {
                   ? 'bg-blue-600 text-white rounded-tr-none' 
                   : 'bg-white text-gray-800 border border-gray-100 rounded-tl-none'}
               `}>
-                {msg.content}
+                {msg.role === 'assistant' ? <ReactMarkdown>{msg.content}</ReactMarkdown> : msg.content}
               </div>
             </div>
           </div>
