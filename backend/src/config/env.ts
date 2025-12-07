@@ -22,5 +22,9 @@ export const env = {
     jwtSecret: process.env.JWT_SECRET || 'default_secret',
     corsOrigin: process.env.CORS_ORIGIN || '*',
     logLevel: process.env.LOG_LEVEL || 'info',
+    kolosal: {
+        apiKey: process.env.KOLOSAL_API_KEY || '',
+        apiUrl: process.env.KOLOSAL_API_URL || 'https://api.kolosal.ai/v1/chat/completions',
+    }
   };
   

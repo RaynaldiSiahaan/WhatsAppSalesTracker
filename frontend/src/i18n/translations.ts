@@ -116,6 +116,11 @@ export const translations = {
     // Navigation/Common
     logout: "Logout",
     loading: "Loading...",
+
+    // AI Chat
+    aiChatTitle: "Discuss Ideas with AI",
+    aiChatDescription: "Chat with our AI assistant to brainstorm ideas, get suggestions, or troubleshoot business challenges.",
+    aiChatPlaceholder: "Type your idea or question here...",
   },
   id: {
     // Auth
@@ -234,5 +239,10 @@ export const translations = {
     // Navigation/Common
     logout: "Keluar",
     loading: "Memuat...",
+
+    // AI Chat
+    aiChatTitle: "Diskusi Ide dengan AI",
+    aiChatDescription: "Ngobrol dengan asisten AI kami untuk mencari ide, mendapatkan saran, atau mengatasi tantangan bisnis.",
+    aiChatPlaceholder: "Ketik ide atau pertanyaan Anda di sini...",
   }
 };
