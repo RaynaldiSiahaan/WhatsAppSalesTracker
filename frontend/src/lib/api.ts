@@ -10,17 +10,6 @@ export const api = axios.create({
   },
 });
 
-// Helper to build full image URL
-export const getImageUrl = (path: string) => {
-  if (!path) return '';
-  if (path.startsWith('http')) return path; // Already a full URL
-
-  // Ensure BASE_URL and path are handled correctly for concatenation
-  const cleanedBaseUrl = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
-  const cleanedPath = path.startsWith('/') ? path.substring(1) : path;
-
-  return `${cleanedBaseUrl}/${cleanedPath}`;
-};
 
 // Interceptor to add Token to requests
 api.interceptors.request.use(

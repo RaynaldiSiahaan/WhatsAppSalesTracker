@@ -26,7 +26,7 @@ export class OrderRepository {
     const text = `
       INSERT INTO orders (order_code, store_id, customer_name, customer_phone, pickup_time, status, total_amount_gross)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
-      RETURNING *;
+      RETURNING id, order_code, store_id, customer_name, customer_phone, pickup_time, status, total_amount_gross, created_at, updated_at;
     `;
     const rows = await this.query<Order>(text, [
       orderCode,
@@ -51,7 +51,7 @@ export class OrderRepository {
     const text = `
       INSERT INTO order_items (order_id, product_id, name, quantity, price_at_order)
       VALUES ($1, $2, $3, $4, $5)
-      RETURNING *;
+      RETURNING id, order_id, product_id, name, quantity, price_at_order, created_at;
     `;
     const rows = await this.query<OrderItem>(text, [
       orderId,
@@ -64,14 +64,40 @@ export class OrderRepository {
   }
 
   async findOrderByCode(orderCode: string): Promise<Order | null> {
-    const text = `SELECT * FROM orders WHERE order_code = $1`;
+    const text = `
+      SELECT id, order_code, store_id, customer_name, customer_phone, pickup_time, status, total_amount_gross, created_at, updated_at
+      FROM orders
+      WHERE order_code = $1;
+    `;
     const rows = await this.query<Order>(text, [orderCode]);
+    return rows[0] || null;
+  }
+
+  async findOrderById(id: number): Promise<Order | null> {
+    const text = `
+      SELECT id, order_code, store_id, customer_name, customer_phone, pickup_time, status, total_amount_gross, created_at, updated_at
+      FROM orders
+      WHERE id = $1;
+    `;
+    const rows = await this.query<Order>(text, [id]);
+    return rows[0] || null;
+  }
+
+  async updateStatus(id: number, status: string): Promise<Order | null> {
+    const text = `
+      UPDATE orders
+      SET status = $2, updated_at = NOW()
+      WHERE id = $1
+      RETURNING id, order_code, store_id, customer_name, customer_phone, pickup_time, status, total_amount_gross, created_at, updated_at;
+    `;
+    const rows = await this.query<Order>(text, [id, status]);
     return rows[0] || null;
   }
   
   async findOrdersByStoreId(storeId: number, limit: number = 20, offset: number = 0): Promise<Order[]> {
       const text = `
-        SELECT * FROM orders 
+        SELECT id, order_code, store_id, customer_name, customer_phone, pickup_time, status, total_amount_gross, created_at, updated_at
+        FROM orders 
         WHERE store_id = $1 
         ORDER BY created_at DESC 
         LIMIT $2 OFFSET $3
@@ -80,52 +106,50 @@ export class OrderRepository {
       return rows;
   }
 
-  async getDashboardStats(userId: number, storeId?: number, startDate?: string, endDate?: string): Promise<{ total_sales_gross: number, orders_count: { pending: number, completed: number, total: number } }> {
+  async getDashboardStats(userId: number, storeId?: number, startDate?: string, endDate?: string): Promise<{ total_stores: number, total_products: number, total_orders_received: number, total_revenue: number }> {
     const params: any[] = [userId];
-    let queryConstraints = 'WHERE s.user_id = $1';
     let paramIndex = 2;
 
+    let storeFilterStores = "";
+    let storeFilterProducts = "";
+    let storeFilterOrders = "";
+    
     if (storeId) {
-      queryConstraints += ` AND o.store_id = $${paramIndex}`;
-      params.push(storeId);
-      paramIndex++;
+        storeFilterStores = `AND id = $${paramIndex}`;
+        storeFilterProducts = `AND s.id = $${paramIndex}`;
+        storeFilterOrders = `AND s.id = $${paramIndex}`;
+        params.push(storeId);
+        paramIndex++;
     }
 
+    let dateFilter = "";
     if (startDate) {
-      queryConstraints += ` AND o.created_at >= $${paramIndex}`;
-      params.push(startDate);
-      paramIndex++;
+        dateFilter += ` AND o.created_at >= $${paramIndex}::timestamptz`;
+        params.push(startDate);
+        paramIndex++;
     }
-
     if (endDate) {
-      // Assuming inclusive end date, we might want to go up to end of that day.
-      // But adhering to exact string passed for now.
-      queryConstraints += ` AND o.created_at <= $${paramIndex}`;
-      params.push(endDate);
-      paramIndex++;
+        dateFilter += ` AND o.created_at::date <= $${paramIndex}::date`;
+        params.push(endDate);
+        paramIndex++;
     }
 
     const text = `
       SELECT 
-          COALESCE(SUM(CASE WHEN o.status = 'COMPLETED' THEN o.total_amount_gross ELSE 0 END), 0) as total_sales_gross,
-          COUNT(CASE WHEN o.status IN ('RECEIVED', 'PREPARING', 'READY_FOR_PICKUP') THEN 1 END) as pending_count,
-          COUNT(CASE WHEN o.status = 'COMPLETED' THEN 1 END) as completed_count,
-          COUNT(o.id) as total_count
-      FROM orders o
-      JOIN stores s ON o.store_id = s.id
-      ${queryConstraints}
+        (SELECT COUNT(*) FROM stores WHERE user_id = $1 ${storeFilterStores}) as total_stores,
+        (SELECT COUNT(*) FROM products p JOIN stores s ON p.store_id = s.id WHERE s.user_id = $1 AND p.is_active = TRUE ${storeFilterProducts}) as total_products,
+        (SELECT COUNT(*) FROM orders o JOIN stores s ON o.store_id = s.id WHERE s.user_id = $1 ${storeFilterOrders} ${dateFilter}) as total_orders_received,
+        (SELECT COALESCE(SUM(total_amount_gross), 0) FROM orders o JOIN stores s ON o.store_id = s.id WHERE s.user_id = $1 AND o.status = 'COMPLETED' ${storeFilterOrders} ${dateFilter}) as total_revenue
     `;
     
     const rows = await this.query<any>(text, params);
     const row = rows[0];
 
     return {
-      total_sales_gross: Number(row.total_sales_gross),
-      orders_count: {
-        pending: Number(row.pending_count),
-        completed: Number(row.completed_count),
-        total: Number(row.total_count)
-      }
+      total_stores: Number(row.total_stores),
+      total_products: Number(row.total_products),
+      total_orders_received: Number(row.total_orders_received),
+      total_revenue: Number(row.total_revenue)
     };
   }
 }

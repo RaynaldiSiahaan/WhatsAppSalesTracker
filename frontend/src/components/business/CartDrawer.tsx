@@ -4,6 +4,7 @@ import { orderService } from '@/services/orderService';
 import { X, ShoppingBag, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { AlertDialog } from '@/components/common/AlertDialog'; // Import AlertDialog
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -17,6 +18,11 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const { t } = useLanguage();
+
+  // State for alert dialog
+  const [showErrorDialog, setShowErrorDialog] = useState(false);
+  const [errorDialogMessage, setErrorDialogMessage] = useState('');
+
 
   // Initialize pickupTime to current time + 1 hour for a reasonable default
   const defaultPickupTime = new Date();
@@ -48,9 +54,16 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
         onClose();
         navigate(`/order-status/${res.data.order_code}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Checkout failed', error);
-      alert(t.failedToProcessOrder);
+      // Handle backend error message if available
+      if (error.response && error.response.data) {
+          const errorData = error.response.data;
+          setErrorDialogMessage(errorData.message || errorData.error || t.failedToProcessOrder);
+      } else {
+          setErrorDialogMessage(t.failedToProcessOrder);
+      }
+      setShowErrorDialog(true); // Show the alert dialog
     } finally {
       setIsSubmitting(false);
     }
@@ -191,6 +204,14 @@ export const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
           )}
         </div>
       </div>
+
+      {/* Error Alert Dialog */}
+      <AlertDialog
+        isOpen={showErrorDialog}
+        onClose={() => setShowErrorDialog(false)}
+        title="Order Failed"
+        message={errorDialogMessage}
+      />
     </div>
   );
 };

@@ -4,7 +4,6 @@ import { useForm } from 'react-hook-form';
 import { productService } from '@/services/productService';
 import { Upload } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { getImageUrl } from '@/lib/api';
 
 const AddProduct = () => {
   const { storeId } = useParams();
@@ -31,7 +30,7 @@ const AddProduct = () => {
             store_id: Number(storeId),
             stock_quantity: Number(data.stock_quantity),
             price: Number(data.price),
-            image_url: getImageUrl(imageUrl)
+            image_url: imageUrl
         };
 
         await productService.addProduct(Number(storeId), payload);
