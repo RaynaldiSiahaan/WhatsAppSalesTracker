@@ -92,11 +92,17 @@ Format standar respons:
 
 #### Get Dashboard Stats
 *   **Endpoint:** `GET /api/seller/dashboard/stats`
-*   **Deskripsi:** Mendapatkan statistik ringkasan untuk dashboard penjual (Membutuhkan Auth).
+*   **Deskripsi:** Mendapatkan statistik ringkasan untuk dashboard penjual (Membutuhkan Auth). Mendukung filtering berdasarkan toko dan rentang tanggal.
+*   **Query Parameters:**
+    | Param | Tipe | Required | Keterangan |
+    | :--- | :--- | :--- | :--- |
+    | `storeId` | Number | No | Filter berdasarkan ID toko tertentu. |
+    | `startDate` | Date (YYYY-MM-DD) | No | Tanggal awal periode (Inclusive). |
+    | `endDate` | Date (YYYY-MM-DD) | No | Tanggal akhir periode (Inclusive). |
 
 **cURL:**
 ```bash
-curl -X GET http://localhost:3000/api/seller/dashboard/stats \
+curl -X GET "http://localhost:3000/api/seller/dashboard/stats?startDate=2023-12-01&endDate=2023-12-31" \
 -H "Authorization: Bearer <ACCESS_TOKEN>"
 ```
 
