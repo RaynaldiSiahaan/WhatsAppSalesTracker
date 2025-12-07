@@ -88,6 +88,33 @@ Format standar respons:
 }
 ```
 
+### 4.6. Dashboard
+
+#### Get Dashboard Stats
+*   **Endpoint:** `GET /api/seller/dashboard/stats`
+*   **Deskripsi:** Mendapatkan statistik ringkasan untuk dashboard penjual (Membutuhkan Auth).
+
+**cURL:**
+```bash
+curl -X GET http://localhost:3000/api/seller/dashboard/stats \
+-H "Authorization: Bearer <ACCESS_TOKEN>"
+```
+
+**Response (200 OK):**
+```json
+{
+  "status_code": 200,
+  "success": true,
+  "message": "Dashboard stats retrieved successfully",
+  "data": {
+    "total_stores": 2,
+    "total_products": 50,
+    "total_orders_received": 120,
+    "total_revenue": 15000000
+  }
+}
+```
+
 ### 4.1. Authentication
 
 #### Register
