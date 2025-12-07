@@ -88,6 +88,39 @@ Format standar respons:
 }
 ```
 
+### 4.6. Dashboard
+
+#### Get Dashboard Stats
+*   **Endpoint:** `GET /api/seller/dashboard/stats`
+*   **Deskripsi:** Mendapatkan statistik ringkasan untuk dashboard penjual (Membutuhkan Auth). Mendukung filtering berdasarkan toko dan rentang tanggal.
+*   **Query Parameters:**
+    | Param | Tipe | Required | Keterangan |
+    | :--- | :--- | :--- | :--- |
+    | `storeId` | Number | No | Filter berdasarkan ID toko tertentu. |
+    | `startDate` | Date (YYYY-MM-DD) | No | Tanggal awal periode (Inclusive). |
+    | `endDate` | Date (YYYY-MM-DD) | No | Tanggal akhir periode (Inclusive). |
+
+**cURL:**
+```bash
+curl -X GET "http://localhost:3000/api/seller/dashboard/stats?startDate=2023-12-01&endDate=2023-12-31" \
+-H "Authorization: Bearer <ACCESS_TOKEN>"
+```
+
+**Response (200 OK):**
+```json
+{
+  "status_code": 200,
+  "success": true,
+  "message": "Dashboard stats retrieved successfully",
+  "data": {
+    "total_stores": 2,
+    "total_products": 50,
+    "total_orders_received": 120,
+    "total_revenue": 15000000
+  }
+}
+```
+
 ### 4.1. Authentication
 
 #### Register

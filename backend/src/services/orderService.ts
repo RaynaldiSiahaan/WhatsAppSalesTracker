@@ -103,8 +103,8 @@ class OrderService {
       return orderRepository.findOrdersByStoreId(storeId);
   }
 
-  async getSellerStats(userId: number) {
-    return orderRepository.getDashboardStats(userId);
+  async getSellerStats(userId: number, storeId?: number, startDate?: string, endDate?: string) {
+    return orderRepository.getDashboardStats(userId, storeId, startDate, endDate);
   }
 }
 

@@ -1,9 +1,11 @@
 import { api } from '@/lib/api';
-import { ApiResponse, DashboardStats } from '@/types/models';
+import { ApiResponse, DashboardStats, DashboardFilter } from '@/types/models';
 
 export const dashboardService = {
-  getStats: async () => {
-    const response = await api.get<ApiResponse<DashboardStats>>('/seller/dashboard/stats');
+  getStats: async (filter?: DashboardFilter) => {
+    const response = await api.get<ApiResponse<DashboardStats>>('/seller/dashboard/stats', {
+      params: filter
+    });
     return response.data;
   }
 };

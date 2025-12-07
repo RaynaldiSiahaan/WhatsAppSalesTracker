@@ -80,7 +80,31 @@ export class OrderRepository {
       return rows;
   }
 
-  async getDashboardStats(userId: number): Promise<{ total_sales_gross: number, orders_count: { pending: number, completed: number, total: number } }> {
+  async getDashboardStats(userId: number, storeId?: number, startDate?: string, endDate?: string): Promise<{ total_sales_gross: number, orders_count: { pending: number, completed: number, total: number } }> {
+    const params: any[] = [userId];
+    let queryConstraints = 'WHERE s.user_id = $1';
+    let paramIndex = 2;
+
+    if (storeId) {
+      queryConstraints += ` AND o.store_id = $${paramIndex}`;
+      params.push(storeId);
+      paramIndex++;
+    }
+
+    if (startDate) {
+      queryConstraints += ` AND o.created_at >= $${paramIndex}`;
+      params.push(startDate);
+      paramIndex++;
+    }
+
+    if (endDate) {
+      // Assuming inclusive end date, we might want to go up to end of that day.
+      // But adhering to exact string passed for now.
+      queryConstraints += ` AND o.created_at <= $${paramIndex}`;
+      params.push(endDate);
+      paramIndex++;
+    }
+
     const text = `
       SELECT 
           COALESCE(SUM(CASE WHEN o.status = 'COMPLETED' THEN o.total_amount_gross ELSE 0 END), 0) as total_sales_gross,
@@ -89,10 +113,10 @@ export class OrderRepository {
           COUNT(o.id) as total_count
       FROM orders o
       JOIN stores s ON o.store_id = s.id
-      WHERE s.user_id = $1
+      ${queryConstraints}
     `;
     
-    const rows = await this.query<any>(text, [userId]);
+    const rows = await this.query<any>(text, params);
     const row = rows[0];
 
     return {
