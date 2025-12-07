@@ -1,6 +1,7 @@
 import { Outlet, Navigate, Link } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import { LogOut, LayoutDashboard } from 'lucide-react';
+import brandLogo from '@/assets/brand_logo.png';
 
 const SellerLayout = () => {
   const { isAuthenticated, logout } = useAuthStore();
@@ -13,8 +14,9 @@ const SellerLayout = () => {
     <div className="min-h-screen bg-gray-100 flex">
       {/* Sidebar */}
       <aside className="w-64 bg-white shadow-md flex-shrink-0 hidden md:block">
-        <div className="p-6">
-          <h1 className="text-2xl font-bold text-gray-800">Seller Portal</h1>
+        <div className="p-6 flex items-center gap-3">
+          <img src={brandLogo} alt="Logo" className="h-10 w-auto" />
+          <h1 className="text-xl font-bold text-gray-800">Setya Rasa</h1>
         </div>
         <nav className="mt-6">
           <Link

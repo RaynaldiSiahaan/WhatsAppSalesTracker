@@ -18,7 +18,7 @@ services:
     environment:
       NODE_ENV: production
     volumes:
-      - ./uploads:/var/www/uploads
+      - /var/www/uploads:/app/uploads
     # depends_on migrator removed to make migration optional
 
   frontend:
@@ -30,4 +30,3 @@ services:
       - "127.0.0.1:8081:80"
     depends_on:
       - api
-

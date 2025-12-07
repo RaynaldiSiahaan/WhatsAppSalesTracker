@@ -96,6 +96,17 @@ export const translations = {
     sendOrder: "Send Order",
     failedToProcessOrder: "Failed to process order. Please try again.",
 
+    // OrderList
+    orders: "Orders",
+    orderId: "Order ID",
+    customer: "Customer",
+    // total: "Total", // Removed duplicate
+    status: "Status",
+    items: "Items",
+    noOrders: "No orders found.",
+    updateStatus: "Update Status",
+    viewOrders: "View Orders",
+
     // OrderSuccess
     orderPlaced: "Order Placed!",
     orderSentSuccessfully: "Your order has been successfully sent to the store.",
@@ -202,6 +213,17 @@ export const translations = {
     processing: "Memproses...",
     sendOrder: "Kirim Pesanan",
     failedToProcessOrder: "Gagal memproses pesanan. Silakan coba lagi.",
+
+    // OrderList
+    orders: "Pesanan",
+    orderId: "ID Pesanan",
+    customer: "Pelanggan",
+    // total: "Total", // Removed duplicate
+    status: "Status",
+    items: "Item",
+    noOrders: "Belum ada pesanan.",
+    updateStatus: "Ubah Status",
+    viewOrders: "Lihat Pesanan",
 
     // OrderSuccess
     orderPlaced: "Pesanan Dibuat!",

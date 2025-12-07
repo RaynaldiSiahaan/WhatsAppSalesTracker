@@ -11,6 +11,7 @@ import Dashboard from '@/pages/seller/Dashboard';
 import StoreManager from '@/pages/seller/StoreManager';
 import ProductDetail from '@/pages/seller/ProductDetail';
 import AddProduct from '@/pages/seller/AddProduct';
+import OrderList from '@/pages/seller/OrderList';
 import LandingPage from '@/pages/LandingPage';
 import Storefront from '@/pages/public/Storefront';
 import OrderSuccess from '@/pages/public/OrderSuccess';
@@ -35,6 +36,7 @@ const AppRoutes = () => {
         <Route path="/manage/:storeId" element={<StoreManager />} />
         <Route path="/manage/:storeId/product/:productId" element={<ProductDetail />} />
         <Route path="/manage/:storeId/add-product" element={<AddProduct />} />
+        <Route path="/manage/:storeId/orders" element={<OrderList />} />
       </Route>
 
       {/* Public Storefront */}

@@ -3,7 +3,7 @@ import { orderRepository } from '../repositories/orderRepository';
 import { productRepository } from '../repositories/productRepository';
 import { storeRepository } from '../repositories/storeRepository';
 import { CreateOrderData, Order } from '../entities/order';
-import { BadRequestError, NotFoundError, InternalServerError } from '../utils/custom-errors';
+import { BadRequestError, NotFoundError, InternalServerError, ForbiddenError } from '../utils/custom-errors';
 import { generateOrderCode } from '../utils/slug';
 import { logger } from '../utils/logger';
 
@@ -105,6 +105,19 @@ class OrderService {
 
   async getSellerStats(userId: number) {
     return orderRepository.getDashboardStats(userId);
+  }
+
+  async updateOrderStatus(userId: number, orderId: number, status: string) {
+      const order = await orderRepository.findOrderById(orderId);
+      if (!order) throw new NotFoundError('Order not found');
+
+      // Verify store ownership
+      const store = await storeRepository.findStoreById(order.store_id);
+      if (!store || store.user_id !== userId) {
+          throw new ForbiddenError('You do not have permission to update this order');
+      }
+
+      return orderRepository.updateStatus(orderId, status);
   }
 }
 

@@ -1,7 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { storeService } from '@/services/storeService';
-import { getImageUrl } from '@/lib/api';
 import { ArrowLeft, Edit } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -52,7 +51,7 @@ const ProductDetail = () => {
         <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden relative">
              {product.image_url ? (
                 <img 
-                    src={getImageUrl(product.image_url)} 
+                    src={(product.image_url)} 
                     alt={product.name} 
                     className="w-full h-full object-cover"
                 />

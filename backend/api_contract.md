@@ -472,6 +472,33 @@ curl -X POST http://localhost:3000/api/public/orders \
 }
 ```
 
+### 4.6. Dashboard (Seller)
+
+#### Get Dashboard Stats
+*   **Endpoint:** `GET /api/seller/dashboard/stats`
+*   **Deskripsi:** Mendapatkan ringkasan statistik penjualan dan pesanan untuk dashboard penjual (Membutuhkan Auth).
+
+**cURL:**
+```bash
+curl -X GET http://localhost:3000/api/seller/dashboard/stats \
+-H "Authorization: Bearer <ACCESS_TOKEN>"
+```
+
+**Response (200 OK):**
+```json
+{
+  "status_code": 200,
+  "success": true,
+  "message": "Dashboard stats retrieved successfully",
+  "data": {
+    "total_stores": 2,
+    "total_products": 50,
+    "total_orders_received": 120,
+    "total_revenue": 15000000
+  }
+}
+```
+
 ## 5. Mock Data / Seeder
 
 Gunakan SQL berikut untuk mengisi database dengan data awal untuk keperluan testing dan development. Pastikan tabel sudah dibuat sebelum menjalankan skema ini.

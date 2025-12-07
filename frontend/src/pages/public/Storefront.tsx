@@ -2,7 +2,6 @@ import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { storeService } from '@/services/storeService';
 import { useCartStore } from '@/store/cartStore';
-import { getImageUrl } from '@/lib/api';
 import { ShoppingCart } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -58,7 +57,7 @@ const Storefront = () => {
                 <div className="aspect-square w-full bg-gray-100 relative overflow-hidden">
                    {product.image_url ? (
                       <img 
-                        src={getImageUrl(product.image_url)} 
+                        src={product.image_url} 
                         alt={product.name} 
                         className="w-full h-full object-cover" 
                       />

@@ -2,7 +2,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { storeService } from '@/services/storeService';
 import { productService } from '@/services/productService';
-import { Plus, Share2, Copy, ExternalLink, Minus, Plus as PlusIcon, Eye } from 'lucide-react';
+import { Plus, Share2, Copy, ExternalLink, Minus, Plus as PlusIcon, Eye, ShoppingBag } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const StoreManager = () => {
@@ -93,6 +93,13 @@ const StoreManager = () => {
             <Share2 className="w-4 h-4" />
             {t.shareWA}
           </button>
+          <Link 
+            to={`/manage/${storeId}/orders`}
+            className="flex items-center gap-2 px-4 py-2 bg-orange-100 text-orange-700 border border-orange-200 rounded-lg text-sm font-medium hover:bg-orange-200"
+          >
+            <ShoppingBag className="w-4 h-4" />
+            {t.viewOrders}
+          </Link>
           <Link 
             to={`/manage/${storeId}/add-product`}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"

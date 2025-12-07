@@ -26,7 +26,7 @@ export class OrderRepository {
     const text = `
       INSERT INTO orders (order_code, store_id, customer_name, customer_phone, pickup_time, status, total_amount_gross)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
-      RETURNING *;
+      RETURNING id, order_code, store_id, customer_name, customer_phone, pickup_time, status, total_amount_gross, created_at, updated_at;
     `;
     const rows = await this.query<Order>(text, [
       orderCode,
@@ -51,7 +51,7 @@ export class OrderRepository {
     const text = `
       INSERT INTO order_items (order_id, product_id, name, quantity, price_at_order)
       VALUES ($1, $2, $3, $4, $5)
-      RETURNING *;
+      RETURNING id, order_id, product_id, name, quantity, price_at_order, created_at;
     `;
     const rows = await this.query<OrderItem>(text, [
       orderId,
@@ -64,14 +64,40 @@ export class OrderRepository {
   }
 
   async findOrderByCode(orderCode: string): Promise<Order | null> {
-    const text = `SELECT * FROM orders WHERE order_code = $1`;
+    const text = `
+      SELECT id, order_code, store_id, customer_name, customer_phone, pickup_time, status, total_amount_gross, created_at, updated_at
+      FROM orders
+      WHERE order_code = $1;
+    `;
     const rows = await this.query<Order>(text, [orderCode]);
+    return rows[0] || null;
+  }
+
+  async findOrderById(id: number): Promise<Order | null> {
+    const text = `
+      SELECT id, order_code, store_id, customer_name, customer_phone, pickup_time, status, total_amount_gross, created_at, updated_at
+      FROM orders
+      WHERE id = $1;
+    `;
+    const rows = await this.query<Order>(text, [id]);
+    return rows[0] || null;
+  }
+
+  async updateStatus(id: number, status: string): Promise<Order | null> {
+    const text = `
+      UPDATE orders
+      SET status = $2, updated_at = NOW()
+      WHERE id = $1
+      RETURNING id, order_code, store_id, customer_name, customer_phone, pickup_time, status, total_amount_gross, created_at, updated_at;
+    `;
+    const rows = await this.query<Order>(text, [id, status]);
     return rows[0] || null;
   }
   
   async findOrdersByStoreId(storeId: number, limit: number = 20, offset: number = 0): Promise<Order[]> {
       const text = `
-        SELECT * FROM orders 
+        SELECT id, order_code, store_id, customer_name, customer_phone, pickup_time, status, total_amount_gross, created_at, updated_at
+        FROM orders 
         WHERE store_id = $1 
         ORDER BY created_at DESC 
         LIMIT $2 OFFSET $3
@@ -80,28 +106,23 @@ export class OrderRepository {
       return rows;
   }
 
-  async getDashboardStats(userId: number): Promise<{ total_sales_gross: number, orders_count: { pending: number, completed: number, total: number } }> {
+  async getDashboardStats(userId: number): Promise<{ total_stores: number, total_products: number, total_orders_received: number, total_revenue: number }> {
     const text = `
       SELECT 
-          COALESCE(SUM(CASE WHEN o.status = 'COMPLETED' THEN o.total_amount_gross ELSE 0 END), 0) as total_sales_gross,
-          COUNT(CASE WHEN o.status IN ('RECEIVED', 'PREPARING', 'READY_FOR_PICKUP') THEN 1 END) as pending_count,
-          COUNT(CASE WHEN o.status = 'COMPLETED' THEN 1 END) as completed_count,
-          COUNT(o.id) as total_count
-      FROM orders o
-      JOIN stores s ON o.store_id = s.id
-      WHERE s.user_id = $1
+        (SELECT COUNT(*) FROM stores WHERE user_id = $1) as total_stores,
+        (SELECT COUNT(*) FROM products p JOIN stores s ON p.store_id = s.id WHERE s.user_id = $1 AND p.is_active = TRUE) as total_products,
+        (SELECT COUNT(*) FROM orders o JOIN stores s ON o.store_id = s.id WHERE s.user_id = $1) as total_orders_received,
+        (SELECT COALESCE(SUM(total_amount_gross), 0) FROM orders o JOIN stores s ON o.store_id = s.id WHERE s.user_id = $1 AND o.status = 'COMPLETED') as total_revenue
     `;
     
     const rows = await this.query<any>(text, [userId]);
     const row = rows[0];
 
     return {
-      total_sales_gross: Number(row.total_sales_gross),
-      orders_count: {
-        pending: Number(row.pending_count),
-        completed: Number(row.completed_count),
-        total: Number(row.total_count)
-      }
+      total_stores: Number(row.total_stores),
+      total_products: Number(row.total_products),
+      total_orders_received: Number(row.total_orders_received),
+      total_revenue: Number(row.total_revenue)
     };
   }
 }
