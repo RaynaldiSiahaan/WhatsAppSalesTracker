@@ -17,11 +17,11 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
   bool _isLoading = false;
 
   // Quick reply templates
-  final List<String> _quickReplies = [
-    'Cara promosi di Instagram',
-    'Tips jualan laris',
-    'Ide produk UMKM',
-    'Strategi harga produk',
+  final List<Map<String, dynamic>> _quickReplies = [
+    {'icon': Icons.campaign, 'text': 'Cara promosi di Instagram'},
+    {'icon': Icons.trending_up, 'text': 'Tips jualan laris'},
+    {'icon': Icons.lightbulb, 'text': 'Ide produk UMKM'},
+    {'icon': Icons.price_change, 'text': 'Strategi harga produk'},
   ];
 
   @override
@@ -33,11 +33,13 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
 
   void _scrollToBottom() {
     if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
+      Future.delayed(const Duration(milliseconds: 100), () {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      });
     }
   }
 
@@ -52,7 +54,7 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
     });
 
     _messageController.clear();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+    _scrollToBottom();
 
     try {
       // Prepare messages for API
@@ -72,17 +74,17 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
         _isLoading = false;
       });
 
-      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+      _scrollToBottom();
     } catch (e) {
       setState(() {
         _messages.add(ChatMessage(
-          text: 'Maaf, terjadi kesalahan: ${e.toString()}',
+          text: 'Maaf, terjadi kesalahan. Silakan coba lagi.',
           isUser: false,
         ));
         _isLoading = false;
       });
-      
-      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+
+      _scrollToBottom();
     }
   }
 
@@ -90,43 +92,144 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
     return Align(
       alignment: message.isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+        margin: EdgeInsets.only(
+          top: 4,
+          bottom: 4,
+          left: message.isUser ? 48 : 8,
+          right: message.isUser ? 8 : 48,
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
           color: message.isUser
               ? AppConstants.primaryBlue
               : Colors.white,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.only(
+            topLeft: const Radius.circular(18),
+            topRight: const Radius.circular(18),
+            bottomLeft: Radius.circular(message.isUser ? 18 : 4),
+            bottomRight: Radius.circular(message.isUser ? 4 : 18),
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 4,
+              color: Colors.black.withAlpha(15),
+              blurRadius: 5,
               offset: const Offset(0, 2),
             ),
           ],
-        ),
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.75,
         ),
         child: Text(
           message.text,
           style: TextStyle(
             color: message.isUser ? Colors.white : AppConstants.textDark,
             fontSize: 15,
+            height: 1.4,
           ),
         ),
       ),
     );
   }
 
-  Widget _buildQuickReply(String text) {
+  Widget _buildQuickReply(Map<String, dynamic> quickReply) {
     return InkWell(
-      onTap: () => _sendMessage(quickReply: text),
-      child: Chip(
-        label: Text(text, style: const TextStyle(fontSize: 13)),
-        backgroundColor: AppConstants.lightBlue.withOpacity(0.2),
-        side: BorderSide(color: AppConstants.lightBlue),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      onTap: () => _sendMessage(quickReply: quickReply['text']),
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppConstants.lightBlue),
+          boxShadow: [
+            BoxShadow(
+              color: AppConstants.primaryBlue.withAlpha(15),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              quickReply['icon'] as IconData,
+              size: 18,
+              color: AppConstants.primaryBlue,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              quickReply['text'] as String,
+              style: TextStyle(
+                fontSize: 13,
+                color: AppConstants.textDark,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: AppConstants.primaryBlue.withAlpha(25),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.psychology,
+                  size: 64,
+                  color: AppConstants.primaryBlue,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Konsultan AI Bisnis',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: AppConstants.textDark,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Dapatkan tips promosi, strategi bisnis,\ndan ide untuk UMKM Anda',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppConstants.textGrey,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              // Quick replies section
+              Text(
+                'Pertanyaan populer:',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: AppConstants.textGrey,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                alignment: WrapAlignment.center,
+                children: _quickReplies.map(_buildQuickReply).toList(),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -139,43 +242,47 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
         title: const Text('Konsultasi Bisnis'),
         backgroundColor: AppConstants.primaryBlue,
         foregroundColor: Colors.white,
+        actions: [
+          if (_messages.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.delete_outline),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Hapus Riwayat Chat'),
+                    content: const Text('Yakin ingin menghapus semua pesan?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Batal'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() => _messages.clear());
+                          Navigator.pop(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppConstants.errorRed,
+                        ),
+                        child: const Text('Hapus'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+        ],
       ),
       body: Column(
         children: [
           // Chat messages
           Expanded(
             child: _messages.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.chat_bubble_outline,
-                          size: 80,
-                          color: Colors.grey[400],
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Tanya AI tentang bisnis Anda',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Dapatkan tips promosi, strategi, & ide',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[500],
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
+                ? _buildEmptyState()
                 : ListView.builder(
                     controller: _scrollController,
-                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     itemCount: _messages.length,
                     itemBuilder: (context, index) {
                       return _buildMessage(_messages[index]);
@@ -183,54 +290,38 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
                   ),
           ),
 
-          // Quick replies (only show when chat is empty)
-          if (_messages.isEmpty)
-            Container(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 4, bottom: 8),
-                    child: Text(
-                      'Pertanyaan cepat:',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: _quickReplies.map(_buildQuickReply).toList(),
-                  ),
-                ],
-              ),
-            ),
-
           // Loading indicator
           if (_isLoading)
-            Padding(
-              padding: const EdgeInsets.all(8.0),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Row(
                 children: [
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: AppConstants.primaryBlue,
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'AI sedang mengetik...',
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 14,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppConstants.primaryBlue,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'AI sedang berpikir...',
+                          style: TextStyle(
+                            color: AppConstants.textGrey,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -243,14 +334,14 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.2),
+                  color: Colors.black.withAlpha(15),
                   spreadRadius: 1,
-                  blurRadius: 5,
-                  offset: const Offset(0, -1),
+                  blurRadius: 10,
+                  offset: const Offset(0, -2),
                 ),
               ],
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: SafeArea(
               child: Row(
                 children: [
@@ -263,11 +354,11 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
                       child: TextField(
                         controller: _messageController,
                         decoration: const InputDecoration(
-                          hintText: 'Ketik pertanyaan...',
+                          hintText: 'Tanya seputar bisnis...',
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.symmetric(
                             horizontal: 20,
-                            vertical: 10,
+                            vertical: 12,
                           ),
                         ),
                         maxLines: null,
@@ -279,11 +370,22 @@ class _ConsultationScreenState extends State<ConsultationScreen> {
                   const SizedBox(width: 8),
                   Container(
                     decoration: BoxDecoration(
-                      color: AppConstants.primaryBlue,
+                      gradient: LinearGradient(
+                        colors: [AppConstants.primaryBlue, AppConstants.darkBlue],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
                       shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppConstants.primaryBlue.withAlpha(100),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.send, color: Colors.white),
+                      icon: const Icon(Icons.send_rounded, color: Colors.white),
                       onPressed: _isLoading ? null : () => _sendMessage(),
                     ),
                   ),

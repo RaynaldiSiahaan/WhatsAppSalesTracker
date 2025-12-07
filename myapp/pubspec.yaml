@@ -30,7 +30,7 @@ flutter:
   uses-material-design: true
   assets:
     - .env
-    - lib/models/umkm_forecast.onnx
+    - assets/models/umkm_forecast.onnx
 
 
 
