@@ -8,7 +8,7 @@ class KolosalApiService {
   
   String get apiKey => dotenv.env['KOLOSAL_API_KEY'] ?? '';
 
-  Future<String> generateProductCaption(String productName, double price, int stock) async {
+  Future<String> generateProductCaption(String productName, double price, int quantity) async {
     try {
       final messages = [
         {
@@ -17,7 +17,7 @@ class KolosalApiService {
         },
         {
           'role': 'user',
-          'content': 'Buatkan caption WhatsApp Story untuk produk: $productName dengan harga Rp ${price.toStringAsFixed(0)}, stok tersisa $stock. Buat semenarik mungkin!'
+          'content': 'Buatkan caption WhatsApp Story untuk menjual $quantity pcs produk: $productName dengan harga Rp ${price.toStringAsFixed(0)} per pcs. Buat semenarik mungkin!'
         }
       ];
 

@@ -7,42 +7,90 @@ import '../providers/product_provider.dart';
 import '../models/product.dart';
 import '../utils/constants.dart';
 
-class CatalogueScreen extends StatelessWidget {
+class CatalogueScreen extends StatefulWidget {
   const CatalogueScreen({super.key});
+
+  @override
+  State<CatalogueScreen> createState() => _CatalogueScreenState();
+}
+
+class _CatalogueScreenState extends State<CatalogueScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  bool _isSearching = false;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppConstants.backgroundGrey,
       appBar: AppBar(
-        title: const Text('Katalog Produk'),
+        title: _isSearching
+            ? TextField(
+                controller: _searchController,
+                autofocus: true,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  hintText: 'Cari produk...',
+                  hintStyle: TextStyle(color: Colors.white70),
+                  border: InputBorder.none,
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value.toLowerCase();
+                  });
+                },
+              )
+            : const Text(
+                'Katalog Produk',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
         backgroundColor: AppConstants.primaryBlue,
         foregroundColor: Colors.white,
         elevation: 0,
+        centerTitle: false,
         actions: [
-          Consumer<ProductProvider>(
-            builder: (context, provider, _) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 16),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      '${provider.products.length} Produk',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
+          IconButton(
+            icon: Icon(_isSearching ? Icons.close : Icons.search),
+            onPressed: () {
+              setState(() {
+                _isSearching = !_isSearching;
+                if (!_isSearching) {
+                  _searchController.clear();
+                  _searchQuery = '';
+                }
+              });
+            },
+          ),
+          if (!_isSearching)
+            Consumer<ProductProvider>(
+              builder: (context, provider, _) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 16),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '${provider.products.length} Produk',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              );
-            },
-          ),
+                );
+              },
+            ),
         ],
       ),
       body: Consumer<ProductProvider>(
@@ -99,8 +147,48 @@ class CatalogueScreen extends StatelessWidget {
             );
           }
 
+          // Filter products based on search query
+          final filteredProducts = _searchQuery.isEmpty
+              ? provider.products
+              : provider.products.where((product) {
+                  return product.name.toLowerCase().contains(_searchQuery);
+                }).toList();
+
+          if (filteredProducts.isEmpty && _searchQuery.isNotEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.search_off,
+                    size: 64,
+                    color: Colors.grey[400],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Produk tidak ditemukan',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Coba kata kunci lain',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[500],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
           return RefreshIndicator(
             onRefresh: () => provider.syncProductsFromAPI(),
+            color: AppConstants.primaryBlue,
             child: GridView.builder(
               padding: const EdgeInsets.all(AppConstants.paddingMedium),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -109,10 +197,13 @@ class CatalogueScreen extends StatelessWidget {
                 mainAxisSpacing: 12,
                 childAspectRatio: 0.72,
               ),
-              itemCount: provider.products.length,
+              itemCount: filteredProducts.length,
               itemBuilder: (context, index) {
-                final product = provider.products[index];
-                return _ProductCard(product: product);
+                final product = filteredProducts[index];
+                return _ProductCard(
+                  product: product,
+                  index: index,
+                );
               },
             ),
           );
@@ -142,8 +233,9 @@ class CatalogueScreen extends StatelessWidget {
 
 class _ProductCard extends StatelessWidget {
   final Product product;
+  final int index;
 
-  const _ProductCard({required this.product});
+  const _ProductCard({required this.product, this.index = 0});
 
   Widget _buildProductImage() {
     // Priority: 1. Local file path, 2. Image URL from API, 3. Placeholder

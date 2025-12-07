@@ -609,22 +609,35 @@ class _ConsultationScreenState extends State<ConsultationScreen>
     return Scaffold(
       backgroundColor: const Color(0xFFECE5DD), // WhatsApp chat background
       appBar: AppBar(
-        elevation: 1,
-        backgroundColor: const Color(0xFF075E54),
+        elevation: 2,
+        shadowColor: Colors.black.withOpacity(0.2),
+        backgroundColor: AppConstants.primaryBlue,
         foregroundColor: Colors.white,
         title: Row(
           children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.smart_toy_outlined,
-                size: 24,
-                color: Colors.white,
+            Hero(
+              tag: 'ai_assistant_avatar',
+              child: Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.white.withOpacity(0.3),
+                      Colors.white.withOpacity(0.1),
+                    ],
+                  ),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.3),
+                    width: 2,
+                  ),
+                ),
+                child: const Icon(
+                  Icons.psychology_outlined,
+                  size: 24,
+                  color: Colors.white,
+                ),
               ),
             ),
             const SizedBox(width: 12),
@@ -633,28 +646,63 @@ class _ConsultationScreenState extends State<ConsultationScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Asisten Bisnis',
+                    'Asisten Bisnis AI',
                     style: TextStyle(
                       fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.3,
                     ),
                   ),
-                  Text(
-                    _isLoading ? 'mengetik...' : 'online',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.white.withOpacity(0.8),
-                    ),
+                  Row(
+                    children: [
+                      if (_isLoading) ...[
+                        SizedBox(
+                          width: 10,
+                          height: 10,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white.withOpacity(0.8),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                      ],
+                      Text(
+                        _isLoading ? 'mengetik...' : 'Siap membantu Anda',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white.withOpacity(0.9),
+                          fontStyle: _isLoading ? FontStyle.italic : FontStyle.normal,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
+            if (_messages.isNotEmpty)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '${_messages.length}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
           ],
         ),
         actions: [
           if (_messages.isNotEmpty)
             IconButton(
-              icon: const Icon(Icons.delete_outline),
+              icon: const Icon(Icons.delete_sweep),
+              tooltip: 'Hapus riwayat chat',
               onPressed: () {
                 showDialog(
                   context: context,

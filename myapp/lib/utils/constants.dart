@@ -41,6 +41,7 @@ class AppConstants {
   static const String productsEndpoint = '/api/stores';
   static const String publicCatalogEndpoint = '/api/public/catalog';
   static const String dashboardStatsEndpoint = '/api/seller/dashboard/stats';
+  // Note: sellerOrdersEndpoint removed - not yet available in API contract
 
   // Storage Keys
   static const String keyAccessToken = 'access_token';

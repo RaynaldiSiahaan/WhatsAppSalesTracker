@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ProductProvider()),
       ],
       child: MaterialApp(
-        title: 'UMKM Seller App',
+        title: 'Sedya Rasa',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
@@ -146,7 +146,7 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
             const SizedBox(height: 24),
             const Text(
-              'UMKM Seller App',
+              'Sedya Rasa',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 28,

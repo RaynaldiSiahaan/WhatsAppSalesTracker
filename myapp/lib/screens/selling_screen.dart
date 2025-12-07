@@ -10,28 +10,82 @@ import '../models/product.dart';
 import '../services/kolosal_api_service.dart';
 import '../utils/constants.dart';
 
-class SellingScreen extends StatelessWidget {
+class SellingScreen extends StatefulWidget {
   const SellingScreen({super.key});
+
+  @override
+  State<SellingScreen> createState() => _SellingScreenState();
+}
+
+class _SellingScreenState extends State<SellingScreen> {
+  bool _showOnlyInStock = true;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppConstants.backgroundGrey,
       appBar: AppBar(
-        title: const Text('Jual Produk'),
+        title: const Text(
+          'Jual Produk',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: AppConstants.primaryBlue,
         foregroundColor: Colors.white,
         elevation: 0,
+        centerTitle: false,
+        actions: [
+          Consumer<ProductProvider>(
+            builder: (context, provider, _) {
+              final count = _showOnlyInStock
+                  ? provider.products.where((p) => p.stockQuantity > 0).length
+                  : provider.products.length;
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 16),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '$count Produk',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: Consumer<ProductProvider>(
         builder: (context, provider, _) {
           if (provider.isLoading && provider.products.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Memuat produk...',
+                    style: TextStyle(
+                      color: AppConstants.textGrey,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            );
           }
 
-          final availableProducts = provider.products
-              .where((p) => p.stockQuantity > 0)
-              .toList();
+          final availableProducts = _showOnlyInStock
+              ? provider.products.where((p) => p.stockQuantity > 0).toList()
+              : provider.products;
 
           if (availableProducts.isEmpty) {
             return Center(
@@ -41,47 +95,111 @@ class SellingScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: Colors.grey[200],
+                      color: AppConstants.primaryBlue.withOpacity(0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      Icons.inventory_2_outlined,
+                      Icons.shopping_cart_outlined,
                       size: 64,
-                      color: Colors.grey[400],
+                      color: AppConstants.primaryBlue.withOpacity(0.5),
                     ),
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    'Tidak ada produk tersedia',
+                    _showOnlyInStock ? 'Tidak ada produk tersedia' : 'Belum ada produk',
                     style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
                       color: Colors.grey[700],
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Tambahkan produk di halaman Katalog',
+                    _showOnlyInStock
+                        ? 'Semua produk sedang habis stok'
+                        : 'Tambahkan produk di halaman Katalog',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[500],
                     ),
                   ),
+                  if (_showOnlyInStock && provider.products.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    TextButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _showOnlyInStock = false;
+                        });
+                      },
+                      icon: const Icon(Icons.visibility),
+                      label: const Text('Tampilkan semua produk'),
+                    ),
+                  ],
                 ],
               ),
             );
           }
 
-          return RefreshIndicator(
-            onRefresh: () => provider.loadProducts(),
-            child: ListView.builder(
-              padding: const EdgeInsets.all(AppConstants.paddingMedium),
-              itemCount: availableProducts.length,
-              itemBuilder: (context, index) {
-                final product = availableProducts[index];
-                return _ProductSellingCard(product: product);
-              },
-            ),
+          return Column(
+            children: [
+              // Filter Chip
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppConstants.paddingMedium,
+                  vertical: AppConstants.paddingSmall,
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.filter_list,
+                      size: 20,
+                      color: AppConstants.textGrey,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Filter:',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: AppConstants.textGrey,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    FilterChip(
+                      label: Text(_showOnlyInStock ? 'Stok tersedia' : 'Semua produk'),
+                      selected: _showOnlyInStock,
+                      onSelected: (selected) {
+                        setState(() {
+                          _showOnlyInStock = selected;
+                        });
+                      },
+                      selectedColor: AppConstants.primaryBlue.withOpacity(0.2),
+                      checkmarkColor: AppConstants.primaryBlue,
+                      labelStyle: TextStyle(
+                        color: _showOnlyInStock ? AppConstants.primaryBlue : AppConstants.textGrey,
+                        fontWeight: _showOnlyInStock ? FontWeight.w600 : FontWeight.normal,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Products List
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: () => provider.loadProducts(),
+                  color: AppConstants.primaryBlue,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(AppConstants.paddingMedium),
+                    itemCount: availableProducts.length,
+                    itemBuilder: (context, index) {
+                      final product = availableProducts[index];
+                      return _ProductSellingCard(product: product);
+                    },
+                  ),
+                ),
+              ),
+            ],
           );
         },
       ),
@@ -101,6 +219,40 @@ class _ProductSellingCard extends StatefulWidget {
 class _ProductSellingCardState extends State<_ProductSellingCard> {
   int _selectedQuantity = 1;
   bool _isGeneratingCaption = false;
+
+  Widget _buildProductImage() {
+    // Priority: imageUrl (from API) > imagePath (local file) > default icon
+    if (widget.product.imageUrl != null && widget.product.imageUrl!.isNotEmpty) {
+      return Image.network(
+        widget.product.imageUrl!,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Icon(Icons.image, size: 40, color: Colors.grey[400]);
+        },
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Center(
+            child: CircularProgressIndicator(
+              value: loadingProgress.expectedTotalBytes != null
+                  ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                  : null,
+              strokeWidth: 2,
+            ),
+          );
+        },
+      );
+    } else if (widget.product.imagePath != null && widget.product.imagePath!.isNotEmpty) {
+      return Image.file(
+        File(widget.product.imagePath!),
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Icon(Icons.image, size: 40, color: Colors.grey[400]);
+        },
+      );
+    } else {
+      return Icon(Icons.image, size: 40, color: Colors.grey[400]);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -136,18 +288,10 @@ class _ProductSellingCardState extends State<_ProductSellingCard> {
                       ),
                     ],
                   ),
-                  child: widget.product.imagePath != null
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
-                          child: Image.file(
-                            File(widget.product.imagePath!),
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Icon(Icons.image, size: 40, color: Colors.grey[400]);
-                            },
-                          ),
-                        )
-                      : Icon(Icons.image, size: 40, color: Colors.grey[400]),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+                    child: _buildProductImage(),
+                  ),
                 ),
                 const SizedBox(width: AppConstants.paddingMedium),
 
@@ -326,7 +470,7 @@ class _ProductSellingCardState extends State<_ProductSellingCard> {
       final caption = await aiService.generateProductCaption(
         widget.product.name,
         widget.product.price,
-        widget.product.stockQuantity - _selectedQuantity,
+        _selectedQuantity,
       );
 
       if (!context.mounted) return;
