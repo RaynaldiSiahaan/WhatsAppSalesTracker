@@ -6,7 +6,7 @@ Dalam era digital ini, sosial media sering sekali dimanfaatkan diluar tujuan uta
 ## Masalah
 Penjual setiap harinya harus kembali membuka galeri dan memikirkan caption untuk puluhan barang yang akan dipromosikan. Penjual harus secara aktif memantau chat yang masuk untuk mengonfirmasi order yang diajukan oleh pembeli. Di sisi lain, terkadang pembeli harus merasa digantungkan. Menunggu waktu 1 jam hanya untuk mendapatkan kabar bahwa stok barang telah habis.
 
-## Solusi
+## Solusi Kami
 Oleh karena itu, Sedya Rasa hadir untuk menjembatani permasalahan yang dialami oleh pengusaha yang memanfaatkan WhatsApp Status serta memberikan kepastian bagi pembeli mengenai orderan mereka. Sedya Rasa terdiri dari 2 komponen utama, yaitu Mobile App yang dikhususkan untuk penjual dan sebuah Desktop Website App untuk pembeli dan juga penjual. 
 
 ## Mobile App
