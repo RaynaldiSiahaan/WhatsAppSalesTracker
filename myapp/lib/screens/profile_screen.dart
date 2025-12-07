@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/auth_provider.dart';
+import '../providers/product_provider.dart';
 import '../utils/constants.dart';
 import 'login_screen.dart';
 
@@ -367,7 +368,13 @@ class ProfileScreen extends StatelessWidget {
     );
 
     if (confirmed == true && context.mounted) {
+      // CRITICAL FIX: Reset ProductProvider to clear in-memory data
+      // This prevents data leakage between different users
+      await Provider.of<ProductProvider>(context, listen: false).resetAllData();
+
+      // Logout from AuthProvider (also clears database and tokens)
       await Provider.of<AuthProvider>(context, listen: false).logout();
+
       if (context.mounted) {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const LoginScreen()),

@@ -26,18 +26,20 @@ class Product {
   // From JSON (API response)
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
-      id: json['id'],
-      storeId: json['store_id'],
-      name: json['name'],
-      price: double.parse(json['price'].toString()),
-      stockQuantity: json['stock_quantity'],
+      id: json['id']?.toString(),
+      storeId: json['store_id']?.toString() ?? '',
+      name: json['name'] ?? '',
+      price: double.tryParse(json['price'].toString()) ?? 0.0,
+      stockQuantity: json['stock_quantity'] is int
+          ? json['stock_quantity']
+          : int.tryParse(json['stock_quantity'].toString()) ?? 0,
       imageUrl: json['image_url'],
       isActive: json['is_active'] ?? true,
-      createdAt: json['created_at'] != null 
-          ? DateTime.parse(json['created_at']) 
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
           : null,
-      updatedAt: json['updated_at'] != null 
-          ? DateTime.parse(json['updated_at']) 
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'])
           : null,
     );
   }

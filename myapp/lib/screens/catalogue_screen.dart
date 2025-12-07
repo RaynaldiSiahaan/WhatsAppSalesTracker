@@ -100,7 +100,7 @@ class CatalogueScreen extends StatelessWidget {
           }
 
           return RefreshIndicator(
-            onRefresh: () => provider.loadProducts(),
+            onRefresh: () => provider.syncProductsFromAPI(),
             child: GridView.builder(
               padding: const EdgeInsets.all(AppConstants.paddingMedium),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -145,6 +145,91 @@ class _ProductCard extends StatelessWidget {
 
   const _ProductCard({required this.product});
 
+  Widget _buildProductImage() {
+    // Priority: 1. Local file path, 2. Image URL from API, 3. Placeholder
+    if (product.imagePath != null && product.imagePath!.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(AppConstants.radiusMedium),
+        ),
+        child: Image.file(
+          File(product.imagePath!),
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: double.infinity,
+          errorBuilder: (context, error, stackTrace) {
+            return _buildImagePlaceholder();
+          },
+        ),
+      );
+    } else if (product.imageUrl != null && product.imageUrl!.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(AppConstants.radiusMedium),
+        ),
+        child: Image.network(
+          product.imageUrl!,
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: double.infinity,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Center(
+              child: CircularProgressIndicator(
+                value: loadingProgress.expectedTotalBytes != null
+                    ? loadingProgress.cumulativeBytesLoaded /
+                        loadingProgress.expectedTotalBytes!
+                    : null,
+                strokeWidth: 2,
+              ),
+            );
+          },
+          errorBuilder: (context, error, stackTrace) {
+            return _buildImagePlaceholder();
+          },
+        ),
+      );
+    }
+    return _buildImagePlaceholder();
+  }
+
+  Widget _buildImagePlaceholder() {
+    return Center(
+      child: Icon(
+        Icons.image,
+        size: 40,
+        color: Colors.grey[400],
+      ),
+    );
+  }
+
+  Widget _buildThumbnailImage() {
+    if (product.imagePath != null && product.imagePath!.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.file(
+          File(product.imagePath!),
+          fit: BoxFit.cover,
+          width: 60,
+          height: 60,
+          errorBuilder: (_, __, ___) => Icon(Icons.image, color: Colors.grey[400]),
+        ),
+      );
+    } else if (product.imageUrl != null && product.imageUrl!.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.network(
+          product.imageUrl!,
+          fit: BoxFit.cover,
+          width: 60,
+          height: 60,
+          errorBuilder: (_, __, ___) => Icon(Icons.image, color: Colors.grey[400]),
+        ),
+      );
+    }
+    return Icon(Icons.image, color: Colors.grey[400]);
+  }
+
   @override
   Widget build(BuildContext context) {
     final formatter = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
@@ -176,32 +261,7 @@ class _ProductCard extends StatelessWidget {
                         top: Radius.circular(AppConstants.radiusMedium),
                       ),
                     ),
-                    child: product.imagePath != null
-                        ? ClipRRect(
-                            borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(AppConstants.radiusMedium),
-                            ),
-                            child: Image.file(
-                              File(product.imagePath!),
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Center(
-                                  child: Icon(
-                                    Icons.image_not_supported,
-                                    size: 40,
-                                    color: Colors.grey[400],
-                                  ),
-                                );
-                              },
-                            ),
-                          )
-                        : Center(
-                            child: Icon(
-                              Icons.image,
-                              size: 40,
-                              color: Colors.grey[400],
-                            ),
-                          ),
+                    child: _buildProductImage(),
                   ),
                   // Stock badge
                   if (isOutOfStock || isLowStock)
@@ -332,15 +392,7 @@ class _ProductCard extends StatelessWidget {
                       color: Colors.grey[200],
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: product.imagePath != null
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.file(
-                              File(product.imagePath!),
-                              fit: BoxFit.cover,
-                            ),
-                          )
-                        : Icon(Icons.image, color: Colors.grey[400]),
+                    child: _buildThumbnailImage(),
                   ),
                   const SizedBox(width: 12),
                   Expanded(

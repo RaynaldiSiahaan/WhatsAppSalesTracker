@@ -22,14 +22,18 @@ class Store {
   // From JSON (API response)
   factory Store.fromJson(Map<String, dynamic> json) {
     return Store(
-      id: json['id'],
-      userId: json['user_id'],
-      name: json['name'],
-      slug: json['slug'],
-      storeCode: json['store_code'],
+      id: json['id'].toString(),
+      userId: json['user_id']?.toString() ?? '',
+      name: json['name'] ?? '',
+      slug: json['slug'] ?? '',
+      storeCode: json['store_code'] ?? '',
       location: json['location'],
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
+          : DateTime.now(),
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'])
+          : DateTime.now(),
     );
   }
 
